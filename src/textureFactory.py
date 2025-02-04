@@ -1,8 +1,11 @@
 # render_factory.py
+from abc import ABC, abstractmethod
 from typing import Dict
 from entity import Entity
+import pygame # type: ignore
 
-class RenderFactory:
+class textureFactory:
+
   def __init__(self):
     self.renderStrategies: Dict[str, RenderStrategy] = {}
 
