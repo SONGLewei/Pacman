@@ -24,5 +24,5 @@ class CornerWall(Entity):
     elif self.rotation == 3:
       pygame.draw.line(screen, 'blue', (self.x, self.y + 0.5 * self.tileHeight), (self.x + 0.5 * self.tileWidth, self.y + 0.5 * self.tileHeight), 3)
       pygame.draw.line(screen, 'blue', (self.x + 0.5 * self.tileWidth, self.y), (self.x + 0.5 * self.tileWidth, self.y + 0.5 * self.tileHeight), 3)
-    else:
-      pass
+    # Draw hitbox
+    # pygame.draw.rect(screen, 'yellow', self.hitbox, 1)

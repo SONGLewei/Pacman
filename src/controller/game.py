@@ -1,16 +1,16 @@
-# game.py
 import os
 import sys
 import math
 import pygame # type: ignore
 
-from level import level_1
-from entity import Entity
-from dot import Dot
-from bigDot import BigDot
-from wall import Wall
-from cornerWall import CornerWall
-from player import Player
+from levels.level import level_1
+from src.elements.entity import Entity
+from src.elements.dot import Dot
+from src.elements.bigDot import BigDot
+from src.elements.wall import Wall
+from src.elements.cornerWall import CornerWall
+from src.elements.gate import Gate
+from src.elements.player import Player
 from typing import List
 
 class Game:
@@ -57,21 +57,13 @@ class Game:
         # Bottom Right Corner
         elif tile == 8:
           self.staticEntities.append(CornerWall(j, i, 3))
+        # Gate
+        elif tile == 9:
+          self.staticEntities.append(Gate(j, i, 1))
 
   def startGame(self):
     self.loadLevel()
     self.run()
-
-  def update(self):
-    self.player.animate()
-
-    for e in self.staticEntities:
-      # If the type is Wall or CornerWall
-      if(isinstance(e, Wall) or isinstance(e, CornerWall)):
-        if self.player.collide(e):
-          self.player.setMovable()
-
-    self.player.move()
 
   def render(self):
     self.screen.fill('black')
@@ -90,14 +82,36 @@ class Game:
     while self.isRunning:
       self.update()
       self.render()
+      
       for event in pygame.event.get():
         if event.type == pygame.QUIT:
           self.endGame()
         if event.type == pygame.KEYDOWN:
-          if event.key == pygame.K_RIGHT: self.player.set_direction("R")
-          elif event.key == pygame.K_LEFT: self.player.set_direction("L")
-          elif event.key == pygame.K_UP: self.player.set_direction("U")
-          elif event.key == pygame.K_DOWN: self.player.set_direction("D")
-        if event.type == pygame.KEYUP:
-          if event.key in [pygame.K_RIGHT, pygame.K_LEFT, pygame.K_UP, pygame.K_DOWN]:
-            self.player.stop()
+          self.handleKeypress(event)
+
+  def update(self):
+    self.player.animate()
+    self.player.resetMovable()
+
+    for e in self.staticEntities:
+      if isinstance(e, (Wall, CornerWall)) and self.player.willCollide(e):
+        self.player.handleCollision(e)
+      if isinstance(e, Gate):
+        if self.player.willCollide(e):
+          self.player.handleCollision(e)
+      if isinstance(e, Dot) and self.player.collide(e):
+        self.score += 10
+        self.staticEntities.remove(e)
+      if isinstance(e, BigDot) and self.player.collide(e):
+        self.score += 50
+        self.staticEntities.remove(e)
+
+    self.player.move()
+    # print(self.score)
+
+  def handleKeypress(self, event):
+    if event.key == pygame.K_RIGHT: self.player.setDirection("R")
+    elif event.key == pygame.K_LEFT: self.player.setDirection("L")
+    elif event.key == pygame.K_UP: self.player.setDirection("U")
+    elif event.key == pygame.K_DOWN: self.player.setDirection("D")
+    elif event.key == pygame.K_SPACE: self.player.setDirection(None)

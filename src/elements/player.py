@@ -12,24 +12,46 @@ class Player(Entity):
     super().__init__(start_pos[0], start_pos[1])
     self.speed = 1
     self.direction = None
-    self.last_direction = "R"
-    self.counter = 0
-    self.color = 'red'
+    self.next_direction = None
     self.movable = [True, True, True, True]
 
+    self.counter = 0
+    self.color = 'red'
+    self.last_direction = "R"
+
   def move(self):
+    if self.next_direction != None:
+      if self.canMove(self.next_direction):
+        self.direction = self.next_direction
+        self.next_direction = None
+
     if self.direction == "R" and self.movable[0]:
       self.x += self.speed
       self.last_direction = self.direction
-    elif self.direction == "L" and self.movable[1]:
+    if self.direction == "L" and self.movable[1]:
       self.x -= self.speed
       self.last_direction = self.direction
-    elif self.direction == "U" and self.movable[2]:
+    if self.direction == "U" and self.movable[2]:
       self.y -= self.speed
       self.last_direction = self.direction
-    elif self.direction == "D" and self.movable[3]:
+    if self.direction == "D" and self.movable[3]:
       self.y += self.speed
       self.last_direction = self.direction
+    self.updateHitbox()
+
+  def setDirection(self, direction):
+    self.next_direction = direction
+
+  def canMove(self, direction):
+    if direction == "R" and self.movable[0]:
+      return True
+    if direction == "L" and self.movable[1]:
+      return True
+    if direction == "U" and self.movable[2]:
+      return True
+    if direction == "D" and self.movable[3]:
+      return True
+    return False
 
   def setMovable(self, direction: str, move: bool) -> None:
     if direction == "R":
@@ -41,6 +63,33 @@ class Player(Entity):
     elif direction == "D":
       self.movable[3] = move
 
+  def resetMovable(self) -> None:
+    self.movable = [True, True, True, True]
+
+  def updateHitbox(self) -> None:
+    self.hitbox = pygame.Rect(self.x, self.y, 30, 30)
+  
+  def handleCollision(self, entity) -> None:
+    if self.hitbox.move(self.speed, 0).colliderect(entity.hitbox):
+      self.setMovable("R", False)
+    if self.hitbox.move(-self.speed, 0).colliderect(entity.hitbox):
+      self.setMovable("L", False)
+    if self.hitbox.move(0, -self.speed).colliderect(entity.hitbox):
+      self.setMovable("U", False)
+    if self.hitbox.move(0, self.speed).colliderect(entity.hitbox):
+      self.setMovable("D", False)
+
+  def willCollide(self, entity) -> bool:
+    if self.hitbox.move(self.speed, 0).colliderect(entity.hitbox):
+      return True
+    if self.hitbox.move(-self.speed, 0).colliderect(entity.hitbox):
+      return True
+    if self.hitbox.move(0, -self.speed).colliderect(entity.hitbox):
+      return True
+    if self.hitbox.move(0, self.speed).colliderect(entity.hitbox):
+      return True
+    return False
+  
   def collide(self, entity) -> bool:
     return self.hitbox.colliderect(entity.hitbox)
 
@@ -63,11 +112,3 @@ class Player(Entity):
       self.counter += 1
     else:
       self.counter = 0
-
-  def set_direction(self, direction):
-    self.direction = direction
-
-  
-
-  def reset_position(self, start_pos):
-    self.x, self.y = start_pos
