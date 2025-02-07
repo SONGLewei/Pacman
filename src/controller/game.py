@@ -4,13 +4,13 @@ import math
 import pygame # type: ignore
 
 from levels.level import level_1
-from src.elements.entity import Entity
-from src.elements.dot import Dot
-from src.elements.bigDot import BigDot
-from src.elements.wall import Wall
-from src.elements.cornerWall import CornerWall
-from src.elements.gate import Gate
-from src.elements.player import Player
+from elements.entity import Entity
+from elements.dot import Dot
+from elements.bigDot import BigDot
+from elements.wall import Wall
+from elements.cornerWall import CornerWall
+from elements.gate import Gate
+from elements.player import Player
 from typing import List
 
 class Game:
@@ -102,9 +102,11 @@ class Game:
       if isinstance(e, Dot) and self.player.collide(e):
         self.score += 10
         self.staticEntities.remove(e)
-      if isinstance(e, BigDot) and self.player.collide(e):
-        self.score += 50
-        self.staticEntities.remove(e)
+      if isinstance(e, BigDot):
+        e.animate()
+        if self.player.collide(e):
+          self.score += 50
+          self.staticEntities.remove(e)
 
     self.player.move()
     # print(self.score)

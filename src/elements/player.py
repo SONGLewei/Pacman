@@ -1,4 +1,4 @@
-from entity import Entity
+from elements.entity import Entity
 
 import pygame # type: ignore
 
@@ -96,19 +96,19 @@ class Player(Entity):
   def render(self, screen) -> None:
     pygame.draw.rect(screen, self.color, self.hitbox, 2)
     if self.last_direction == "R":
-      screen.blit(player_images[self.counter // 15], [self.x - 5, self.y - 5])
+      screen.blit(player_images[self.counter // 30], [self.x - 5, self.y - 5])
     elif self.last_direction == "L":
-      screen.blit(pygame.transform.flip(player_images[self.counter // 15], True, False), [self.x - 5, self.y - 5])
+      screen.blit(pygame.transform.flip(player_images[self.counter // 30], True, False), [self.x - 5, self.y - 5])
     elif self.last_direction == "U":
-      screen.blit(pygame.transform.rotate(player_images[self.counter // 15], 90), [self.x - 5, self.y - 5])
+      screen.blit(pygame.transform.rotate(player_images[self.counter // 30], 90), [self.x - 5, self.y - 5])
     elif self.last_direction == "D":
-      screen.blit(pygame.transform.rotate(player_images[self.counter // 15], 270), [self.x - 5, self.y - 5])
+      screen.blit(pygame.transform.rotate(player_images[self.counter // 30], 270), [self.x - 5, self.y - 5])
     # Render player based on direction and animation
     
     pass
 
   def animate(self):
-    if self.counter < 59:
+    if self.counter < 119:
       self.counter += 1
     else:
       self.counter = 0

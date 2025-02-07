@@ -1,4 +1,4 @@
-from entity import Entity
+from elements.entity import Entity
 
 import pygame # type: ignore
 
