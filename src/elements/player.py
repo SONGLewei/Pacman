@@ -37,6 +37,13 @@ class Player(Entity):
     if self.direction == "D" and self.movable[3]:
       self.y += self.speed
       self.last_direction = self.direction
+
+    # Wrap around the screen horizontally
+    if self.x >= 900:
+      self.x = 0
+    elif self.x < 0:
+      self.x = 900
+
     self.updateHitbox()
 
   def setDirection(self, direction):

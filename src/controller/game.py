@@ -2,6 +2,7 @@ import os
 import sys
 import math
 import pygame # type: ignore
+import json
 
 from levels.level import level_1
 from elements.entity import Entity
@@ -11,6 +12,7 @@ from elements.wall import Wall
 from elements.cornerWall import CornerWall
 from elements.gate import Gate
 from elements.player import Player
+from elements.ghost import Ghost
 from typing import List
 
 class Game:
@@ -28,7 +30,17 @@ class Game:
     # self.timer = pygame.time.Clock()
     self.staticEntities: List[Entity] = []
     self.movableEntities: List[Entity] = []
-    self.player = Player([10, 12])
+    self.loadConfig()
+
+  def loadConfig(self):
+    with open('./src/config.json', 'r') as f:
+      data = json.load(f)
+      self.player = Player(data['player']['start_pos'])
+      for ghost in data['ghosts']:
+        ghost_type = ghost['type']
+        ghost_pos = ghost['start_pos']
+        self.movableEntities.append(Ghost(ghost_pos[0], ghost_pos[1], ghost_type))
+        pass
 
   def loadLevel(self, levelData: List[List[int]] = level_1):
     # Initialize entities based on levelData
@@ -109,7 +121,26 @@ class Game:
           self.staticEntities.remove(e)
 
     self.player.move()
+    
+    for ghost in self.movableEntities:
+      ghost.move(self.player)
+      # if ghost.collide(self.player):
+      #   self.lives -= 1
+      #   if self.lives == 0:
+      #     print("Game Over!")
+      #     self.endGame()
+      #   else:
+      #     self.player.resetPosition()
+      #     for ghost in self.movableEntities:
+      #       ghost.resetPosition()
+      #     break
+      pass
     # print(self.score)
+
+    # Check if all dots and big dots are collected
+    if not any(isinstance(e, (Dot, BigDot)) for e in self.staticEntities):
+      print("You won!")
+      self.endGame()
 
   def handleKeypress(self, event):
     if event.key == pygame.K_RIGHT: self.player.setDirection("R")

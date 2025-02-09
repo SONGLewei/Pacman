@@ -1,0 +1,23 @@
+{
+  "player": {
+    "start_pos": [10, 12]
+  },
+  "ghosts": [
+    {
+      "type": "red",
+      "start_pos": [12, 14]
+    },
+    {
+      "type": "blue",
+      "start_pos": [12, 16]
+    },
+    {
+      "type": "pink",
+      "start_pos": [17, 14]
+    },
+    {
+      "type": "orange",
+      "start_pos": [17, 16]
+    }
+  ]
+}
