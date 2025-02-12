@@ -23,7 +23,8 @@ class Game:
     self.score = 0
     self.lives = 3
     self.isRunning = True
-    pygame.init()
+    pygame.display.init()
+    pygame.font.init()
     pygame.display.set_caption("Pac-Man")
     self.font = pygame.font.Font('./assets/fonts/Ubuntu.ttf', 20)
     self.screen = pygame.display.set_mode([self.WIDTH, self.HEIGHT])
