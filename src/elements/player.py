@@ -46,6 +46,9 @@ class Player(Entity):
 
     self.updateHitbox()
 
+  def stop(self):
+    self.direction = None
+
   def setDirection(self, direction):
     self.next_direction = direction
 

@@ -105,12 +105,23 @@ class Game:
     self.player.animate()
     self.player.resetMovable()
 
+    for ghost in self.movableEntities:
+      ghost.resetMovable()
+
     for e in self.staticEntities:
-      if isinstance(e, (Wall, CornerWall)) and self.player.willCollide(e):
-        self.player.handleCollision(e)
+      if isinstance(e, (Wall, CornerWall)):
+        if self.player.willCollide(e):
+          self.player.handleCollision(e)
+        for ghost in self.movableEntities:
+          if ghost.willCollide(e):
+            ghost.handleCollision(e)
       if isinstance(e, Gate):
         if self.player.willCollide(e):
           self.player.handleCollision(e)
+        for ghost in self.movableEntities:
+          if not ghost.isInSpawnBox() and not ghost.isDead():
+            if ghost.willCollide(e):
+              ghost.handleCollision(e)
       if isinstance(e, Dot) and self.player.collide(e):
         self.score += 10
         self.staticEntities.remove(e)
@@ -124,16 +135,11 @@ class Game:
     
     for ghost in self.movableEntities:
       ghost.move(self.player)
-      # if ghost.collide(self.player):
-      #   self.lives -= 1
-      #   if self.lives == 0:
-      #     print("Game Over!")
-      #     self.endGame()
-      #   else:
-      #     self.player.resetPosition()
-      #     for ghost in self.movableEntities:
-      #       ghost.resetPosition()
-      #     break
+      if ghost.collide(self.player) and not ghost.isDead():
+        # print("Game Over!")
+        # self.endGame()
+        ghost.setState("dead")
+        print(f"Ghost {ghost.ghost_type} is {ghost.getState()}")
       pass
     # print(self.score)
 
@@ -147,4 +153,4 @@ class Game:
     elif event.key == pygame.K_LEFT: self.player.setDirection("L")
     elif event.key == pygame.K_UP: self.player.setDirection("U")
     elif event.key == pygame.K_DOWN: self.player.setDirection("D")
-    elif event.key == pygame.K_SPACE: self.player.setDirection(None)
+    elif event.key == pygame.K_SPACE: self.player.stop()
