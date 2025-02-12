@@ -16,7 +16,7 @@ class Ghost(Entity):
   def __init__(self, x, y, ghost_type):
     super().__init__(x, y)
     self.ghost_type = ghost_type
-    self.speed = 1
+    self.speed = 2
     self.state = "chase"
     self.image = self.getImage()
     self.direction = None
@@ -26,9 +26,14 @@ class Ghost(Entity):
     self.movable = [True, True, True, True]
     self.inSpawnBox = True
 
+  def setSpeed(self, speed):
+    self.speed = speed
+
   def setState(self, state):
     self.state = state
     self.image = self.getImage()
+    if state != "frightened":
+      self.setSpeed(2)
 
   def getState(self):
     return self.state
@@ -38,9 +43,15 @@ class Ghost(Entity):
   
   def isDead(self):
     return self.state == "dead"
+  
+  def frighten(self):
+    if not self.isDead():
+      self.last_direction = None
+      self.setSpeed(0.5 * self.speed)
+      self.setState("frightened")
 
   def move(self, player):
-    # Ghost will only choose a new target if they have finished moving to their new tile
+    # Ghost will only choose a new target if they are exactly on a tile
     if self.x % 30 == 0 and self.y % 30 == 0:
 
       # Define the tile above the gate
@@ -63,13 +74,14 @@ class Ghost(Entity):
       else:
         self.inSpawnBox = False
 
-        # The state will set the direction of the ghost
+        # Depending on the state of the ghost it will move differently
+        # Each of those method will choose the direction of the ghost.
         if self.state == "chase":
           self.chase(player)
         elif self.state == "scatter":
           self.scatter()
         elif self.state == "frightened":
-          self.frightened()
+          self.frightened(player)
         elif self.state == "dead":
           self.dead()
 
@@ -86,15 +98,16 @@ class Ghost(Entity):
       if self.direction == "D" and self.movable[3]:
         self.y += self.speed
         self.last_direction = self.direction
+
+    # If we aren't entirely on a tile, we keep moving in the same direction
     else:
-      # If the ghost is not at a tile boundary, it will continue moving in the same direction
-      if self.direction == "R" and self.movable[0]:
+      if self.last_direction == "R" and self.movable[0]:
         self.x += self.speed
-      if self.direction == "L" and self.movable[1]:
+      if self.last_direction == "L" and self.movable[1]:
         self.x -= self.speed
-      if self.direction == "U" and self.movable[2]:
+      if self.last_direction == "U" and self.movable[2]:
         self.y -= self.speed
-      if self.direction == "D" and self.movable[3]:
+      if self.last_direction == "D" and self.movable[3]:
         self.y += self.speed
 
     # Wrap around the screen horizontally
@@ -210,23 +223,25 @@ class Ghost(Entity):
 
   def target(self, x, y):
     # Calculate the distance to the target tile for all 4 possible directions
-    right = self.calculateDistance(self.x + 30, self.y, x, y)
-    left = self.calculateDistance(self.x - 30, self.y, x, y)
-    up = self.calculateDistance(self.x, self.y - 30, x, y)
-    down = self.calculateDistance(self.x, self.y + 30, x, y)
+    up = round(self.calculateDistance(self.x, self.y - 30, x, y))
+    left = round(self.calculateDistance(self.x - 30, self.y, x, y))
+    down = round(self.calculateDistance(self.x, self.y + 30, x, y))
+    right = round(self.calculateDistance(self.x + 30, self.y, x, y))
 
-    # Create a priority queue to determine the best direction to move in
-    pq = PriorityQueue()
-    pq.put((up, "U"))
-    pq.put((left, "L"))
-    pq.put((down, "D"))
-    pq.put((right, "R"))
+    directions = [
+      (up, "U"),
+      (left, "L"),
+      (down, "D"),
+      (right, "R")
+    ]
 
-    # Check if the direction is movable
-    while not pq.empty():
-      distance, direction = pq.get()
-      if self.canMove(direction) and not self.isBacktracking(direction):
-        self.setDirection(direction)
+    # Sort first by distance. If distances are equal, sort by the order of Up, Left, Down, Right
+    directions = sorted(directions, key=lambda x: (x[0], ["U", "L", "D", "R"].index(x[1])))
+
+    # Try to move in the direction with the minimum distance
+    for distance, directions in directions:
+      if self.canMove(directions) and not self.isBacktracking(directions):
+        self.setDirection(directions)
         break
 
   def scatter(self):
@@ -242,8 +257,35 @@ class Ghost(Entity):
     elif self.ghost_type == "orange":
       self.target(0, 870)
 
-  def frightened(self):
-    pass
+  def frightened(self, player):
+    x, y = player.x, player.y
+    # Calculate the distance to the player in all 4 directions
+    # Calculate the distance to the target tile for all 4 possible directions
+    up = round(self.calculateDistance(self.x, self.y - 30, x, y))
+    left = round(self.calculateDistance(self.x - 30, self.y, x, y))
+    down = round(self.calculateDistance(self.x, self.y + 30, x, y))
+    right = round(self.calculateDistance(self.x + 30, self.y, x, y))
+
+    print(f"Up: {up}, Left: {left}, Down: {down}, Right: {right}")
+
+    directions = [
+      (up, "U"),
+      (left, "L"),
+      (down, "D"),
+      (right, "R")
+    ]
+    
+    # Reverse Sort by distance. If distances are equal, sort by the order of Up, Left, Down, Right
+    directions = sorted(directions, key=lambda x: (x[0], ["R", "D", "L", "U"].index(x[1])), reverse=True)
+
+    print(f"Directions: {directions}")
+
+    # Try to move in the direction with the maximum distance first
+    for distance, direction in directions:
+      print(f"Direction: {direction}, canMove: {self.canMove(direction)}, isBacktracking: {self.isBacktracking(direction)}")
+      if self.canMove(direction) and not self.isBacktracking(direction):
+        self.setDirection(direction)
+        break
 
   def dead(self):
     self.target(self.spawn_tile[0], self.spawn_tile[1])

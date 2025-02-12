@@ -27,7 +27,7 @@ class Game:
     pygame.display.set_caption("Pac-Man")
     self.font = pygame.font.Font('./assets/fonts/Ubuntu.ttf', 20)
     self.screen = pygame.display.set_mode([self.WIDTH, self.HEIGHT])
-    # self.timer = pygame.time.Clock()
+    self.clock = pygame.time.Clock()
     self.staticEntities: List[Entity] = []
     self.movableEntities: List[Entity] = []
     self.loadConfig()
@@ -101,9 +101,12 @@ class Game:
         if event.type == pygame.KEYDOWN:
           self.handleKeypress(event)
 
+      self.clock.tick(self.fps)
+
   def update(self):
     self.player.animate()
     self.player.resetMovable()
+    self.player.tickPowerUp(self.movableEntities)
 
     for ghost in self.movableEntities:
       ghost.resetMovable()
@@ -130,16 +133,23 @@ class Game:
         if self.player.collide(e):
           self.score += 50
           self.staticEntities.remove(e)
+          self.player.powerUp()
+          for ghost in self.movableEntities:
+            ghost.frighten()
+            pass
 
     self.player.move()
     
     for ghost in self.movableEntities:
       ghost.move(self.player)
       if ghost.collide(self.player) and not ghost.isDead():
-        # print("Game Over!")
-        # self.endGame()
-        ghost.setState("dead")
-        print(f"Ghost {ghost.ghost_type} is {ghost.getState()}")
+        if self.player.isEmpowered:
+          self.score += 200 * (2 ** self.player.ghostsEaten)
+          self.player.ghostsEaten += 1
+          ghost.setState("dead")
+        else:
+          print("You lost!")
+          self.endGame()
       pass
     # print(self.score)
 

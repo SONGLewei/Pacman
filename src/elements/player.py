@@ -10,14 +10,32 @@ class Player(Entity):
 
   def __init__(self, start_pos):
     super().__init__(start_pos[0], start_pos[1])
-    self.speed = 1
+    self.speed = 2
     self.direction = None
     self.next_direction = None
     self.movable = [True, True, True, True]
 
+    # Power Up Variables
+    self.isEmpowered = False
+    self.empowerCounter = 0
+    self.ghostsEaten = 0
+
     self.counter = 0
     self.color = 'red'
     self.last_direction = "R"
+
+  def powerUp(self):
+    self.isEmpowered = True
+    self.empowerCounter = 6 * 120
+    self.ghostsEaten = 0
+
+  def tickPowerUp(self, ghosts):
+    if self.isEmpowered:
+      self.empowerCounter -= 1
+      if self.empowerCounter <= 0:
+        self.isEmpowered = False
+        for ghost in ghosts:
+          ghost.setState("chase")
 
   def move(self):
     if self.next_direction != None:
@@ -104,21 +122,20 @@ class Player(Entity):
     return self.hitbox.colliderect(entity.hitbox)
 
   def render(self, screen) -> None:
-    pygame.draw.rect(screen, self.color, self.hitbox, 2)
     if self.last_direction == "R":
-      screen.blit(player_images[self.counter // 30], [self.x - 5, self.y - 5])
+      screen.blit(player_images[self.counter // 15], [self.x - 5, self.y - 5])
     elif self.last_direction == "L":
-      screen.blit(pygame.transform.flip(player_images[self.counter // 30], True, False), [self.x - 5, self.y - 5])
+      screen.blit(pygame.transform.flip(player_images[self.counter // 15], True, False), [self.x - 5, self.y - 5])
     elif self.last_direction == "U":
-      screen.blit(pygame.transform.rotate(player_images[self.counter // 30], 90), [self.x - 5, self.y - 5])
+      screen.blit(pygame.transform.rotate(player_images[self.counter // 15], 90), [self.x - 5, self.y - 5])
     elif self.last_direction == "D":
-      screen.blit(pygame.transform.rotate(player_images[self.counter // 30], 270), [self.x - 5, self.y - 5])
-    # Render player based on direction and animation
-    
-    pass
+      screen.blit(pygame.transform.rotate(player_images[self.counter // 15], 270), [self.x - 5, self.y - 5])
+    # Render player hitbox
+    # pygame.draw.rect(screen, self.color, self.hitbox, 2)
+
 
   def animate(self):
-    if self.counter < 119:
+    if self.counter < 29:
       self.counter += 1
     else:
       self.counter = 0
