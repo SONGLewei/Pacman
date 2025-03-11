@@ -25,6 +25,7 @@ class Ghost(Entity):
     self.target_tile = [0, 0]
     self.movable = [True, True, True, True]
     self.inSpawnBox = True
+    self.deadStateCounter = 0
 
   def setSpeed(self, speed):
     self.speed = speed
@@ -34,6 +35,7 @@ class Ghost(Entity):
     self.image = self.getImage()
     if state != "frightened":
       self.setSpeed(2)
+    #print(self.state)
 
   def getState(self):
     return self.state
@@ -46,10 +48,14 @@ class Ghost(Entity):
   
   def frighten(self):
     if not self.isDead():
-      self.last_direction = None
-      self.setSpeed(0.5 * self.speed)
+    #self.last_direction = None
+      self.setSpeed(0.5*self.speed)
       self.setState("frightened")
 
+  def DeadState(self):
+    self.setState("dead")
+    self.deadStateCounter = 6 * 60
+  
   def move(self, player):
     # Ghost will only choose a new target if they are exactly on a tile
     if self.x % 30 == 0 and self.y % 30 == 0:
@@ -60,17 +66,34 @@ class Ghost(Entity):
       # Check if the ghost is inside the spawn box
       if 11 <= self.x // 30 <= 18 and 13 <= self.y // 30 <= 17:
         # Only go out of the box if we aren't currently going back to the spawn tile
+        """
         if not self.isDead():
           self.target_tile[0] = tile_above_gate[0] * 30
           self.target_tile[1] = tile_above_gate[1] * 30
           self.target(self.target_tile[0], self.target_tile[1])
           self.inSpawnBox = True
+
+          if self.direction is None:
+            self.setDirection("U")
         # Otherwise go to the spawn tile and once on it set the state to chase
-        else:
+        else:# self isDead
           self.dead()
           if self.x == self.spawn_tile[0] and self.y == self.spawn_tile[1]:
+            #self.inSpawnBox = True
+            #self.setState("chase")
+            #self.target(self.spawn_tile[0], self.spawn_tile[1])
+                self.inSpawnBox = True
+                self.setState("chase")
+        """
+        if self.isDead():
+          self.dead()
+        else:
+            self.target_tile[0] = tile_above_gate[0] * 30
+            self.target_tile[1] = tile_above_gate[1] * 30
+            self.target(self.target_tile[0], self.target_tile[1])
             self.inSpawnBox = True
-            self.setState("chase")
+            if self.direction is None:
+              self.setDirection("U")
       else:
         self.inSpawnBox = False
 
@@ -84,6 +107,11 @@ class Ghost(Entity):
           self.frightened(player)
         elif self.state == "dead":
           self.dead()
+
+      if self.x >= 900:
+        self.x = 0
+      elif self.x < 0:
+        self.x = 900
 
       # Now that the ghost has chosen a direction, it will move in that direction
       if self.direction == "R" and self.movable[0]:
@@ -266,7 +294,7 @@ class Ghost(Entity):
     down = round(self.calculateDistance(self.x, self.y + 30, x, y))
     right = round(self.calculateDistance(self.x + 30, self.y, x, y))
 
-    print(f"Up: {up}, Left: {left}, Down: {down}, Right: {right}")
+    #print(f"Up: {up}, Left: {left}, Down: {down}, Right: {right}")
 
     directions = [
       (up, "U"),
@@ -278,17 +306,24 @@ class Ghost(Entity):
     # Reverse Sort by distance. If distances are equal, sort by the order of Up, Left, Down, Right
     directions = sorted(directions, key=lambda x: (x[0], ["R", "D", "L", "U"].index(x[1])), reverse=True)
 
-    print(f"Directions: {directions}")
+    #print(f"Directions: {directions}")
 
     # Try to move in the direction with the maximum distance first
     for distance, direction in directions:
-      print(f"Direction: {direction}, canMove: {self.canMove(direction)}, isBacktracking: {self.isBacktracking(direction)}")
-      if self.canMove(direction) and not self.isBacktracking(direction):
+      #print(f"Direction: {direction}, canMove: {self.canMove(direction)}, isBacktracking: {self.isBacktracking(direction)}")
+      if self.canMove(direction): #and not self.isBacktracking(direction):
         self.setDirection(direction)
         break
+    #self.updateHitbox()
+
 
   def dead(self):
-    self.target(self.spawn_tile[0], self.spawn_tile[1])
+      target_x, target_y = 14 * 30, 12 * 30  # 统一的幽灵屋入口
+      if (self.x, self.y) != (target_x, target_y):
+          self.target(target_x, target_y)
+      else:
+          self.setState("chase")
+          self.inSpawnBox = False
 
   def setDirection(self, direction):
     self.direction = direction
@@ -344,6 +379,7 @@ class Ghost(Entity):
       self.setMovable("U", False)
     if self.hitbox.move(0, self.speed).colliderect(entity.hitbox):
       self.setMovable("D", False)
+
 
   def willCollide(self, entity) -> bool:
     if self.hitbox.move(self.speed, 0).colliderect(entity.hitbox):

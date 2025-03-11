@@ -27,12 +27,14 @@ class Game:
     pygame.font.init()
     pygame.display.set_caption("Pac-Man")
     self.font = pygame.font.Font('./assets/fonts/Ubuntu.ttf', 20)
-    self.screen = pygame.display.set_mode([self.WIDTH, self.HEIGHT])
+    self.screen = pygame.display.set_mode([self.WIDTH,self.HEIGHT],pygame.RESIZABLE)
     self.clock = pygame.time.Clock()
     self.staticEntities: List[Entity] = []
     self.movableEntities: List[Entity] = []
     self.loadConfig()
-
+    self.ai_enabled = False
+    self.ai_agent = None
+    
   def loadConfig(self):
     with open('./src/config.json', 'r') as f:
       data = json.load(f)
@@ -41,6 +43,7 @@ class Game:
         ghost_type = ghost['type']
         ghost_pos = ghost['start_pos']
         self.movableEntities.append(Ghost(ghost_pos[0], ghost_pos[1], ghost_type))
+        self.movableEntities[-1].spawnTimer = 0
         pass
 
   def loadLevel(self, levelData: List[List[int]] = level_1):
@@ -105,6 +108,15 @@ class Game:
       self.clock.tick(self.fps)
 
   def update(self):
+
+    if self.ai_enabled and self.ai_agent is not None:
+        action = self.ai_agent.decide_action(
+            player=self.player,
+            ghosts=self.movableEntities,
+            static_entities=self.staticEntities
+        )
+        self.player.setDirection(action)
+
     self.player.animate()
     self.player.resetMovable()
     self.player.tickPowerUp(self.movableEntities)
@@ -142,12 +154,18 @@ class Game:
     self.player.move()
     
     for ghost in self.movableEntities:
+      if ghost.isDead():
+        ghost.deadStateCounter-=1
+        if ghost.deadStateCounter <= 0:
+            self.resetGhost(ghost)
+
       ghost.move(self.player)
+
       if ghost.collide(self.player) and not ghost.isDead():
         if self.player.isEmpowered:
           self.score += 200 * (2 ** self.player.ghostsEaten)
           self.player.ghostsEaten += 1
-          ghost.setState("dead")
+          ghost.DeadState()
         else:
           print("You lost!")
           self.endGame()
@@ -158,10 +176,28 @@ class Game:
     if not any(isinstance(e, (Dot, BigDot)) for e in self.staticEntities):
       print("You won!")
       self.endGame()
+    
 
   def handleKeypress(self, event):
+    if self.ai_enabled:
+        return
     if event.key == pygame.K_RIGHT: self.player.setDirection("R")
     elif event.key == pygame.K_LEFT: self.player.setDirection("L")
     elif event.key == pygame.K_UP: self.player.setDirection("U")
     elif event.key == pygame.K_DOWN: self.player.setDirection("D")
     elif event.key == pygame.K_SPACE: self.player.stop()
+
+  def resetGhost(self, ghost):
+      ghost.x = 14 * 30
+      ghost.y = 12 * 30
+      ghost.setState("chase")
+      ghost.direction = "R"
+      ghost.last_direction = "R"
+      ghost.inSpawnBox = True
+      ghost.deadStateCounter = 0
+      ghost.target_tile = [14 * 30, 12 * 30]
+      ghost.spawnTimer = 120
+
+  def enable_ai(self, ai_agent):
+    self.ai_enabled = True
+    self.ai_agent = ai_agent

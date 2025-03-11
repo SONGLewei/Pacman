@@ -117,6 +117,7 @@ class Player(Entity):
     if self.hitbox.move(0, self.speed).colliderect(entity.hitbox):
       return True
     return False
+    
   
   def collide(self, entity) -> bool:
     return self.hitbox.colliderect(entity.hitbox)
