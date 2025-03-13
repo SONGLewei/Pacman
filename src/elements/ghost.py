@@ -141,6 +141,12 @@ class Ghost(Entity):
     else:
       self.moveTowardsTarget()
 
+    # Tunnel teleportation
+    if self.x >= 900:
+      self.x = 0
+    elif self.x < 0:
+      self.x = 900
+
     self.updateHitbox()
 
   def enterSpawnBox(self):
