@@ -143,16 +143,7 @@ class Ghost(Entity):
       self.last_position = (self.x, self.y)
 
     if self.idle_frames >= 60:
-      if self.inSpawnBox and self.state != "dead":
-            if self.direction == "R":
-                self.movable[0] = True
-            elif self.direction == "L":
-                self.movable[1] = True
-            elif self.direction == "U":
-                self.movable[2] = True
-            elif self.direction == "D":
-                self.movable[3] = True
-      print(f"this is {self.ghost_type}, my state: {self.state}, my direction: {self.direction}, my movable: {self.movable}, my dead_timer: {self.dead_timer}, in spawnBox: {self.inSpawnBox}")
+      print(f"this is {self.ghost_type}, my target is {self.target_tile}, my state: {self.state}, my direction: {self.direction}, my movable: {self.movable}, my dead_timer: {self.dead_timer}, in spawnBox: {self.inSpawnBox}")
  
 
   def chase(self, player):
