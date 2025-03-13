@@ -114,21 +114,30 @@ class Game:
 
     for e in self.staticEntities:
       if isinstance(e, (Wall, CornerWall)):
+        # Prevent the player from going through walls
         if self.player.willCollide(e):
           self.player.handleCollision(e)
+        # Prevent ghosts from going through walls
         for ghost in self.movableEntities:
           if ghost.willCollide(e):
             ghost.handleCollision(e)
+
       if isinstance(e, Gate):
+        # Prevent the player from going through the gate
         if self.player.willCollide(e):
           self.player.handleCollision(e)
         for ghost in self.movableEntities:
-          if not ghost.isInSpawnBox() and not ghost.isDead():
+          # Prevent alive ghosts from entering
+          if not ghost.isDead() and not ghost.isSpawning():
             if ghost.willCollide(e):
               ghost.handleCollision(e)
+
+      # Eating the dots
       if isinstance(e, Dot) and self.player.collide(e):
         self.score += 10
         self.staticEntities.remove(e)
+
+      # Eating the bigDots
       if isinstance(e, BigDot):
         e.animate()
         if self.player.collide(e):
@@ -136,8 +145,7 @@ class Game:
           self.staticEntities.remove(e)
           self.player.powerUp()
           for ghost in self.movableEntities:
-            ghost.frighten()
-            pass
+            ghost.setFrightened()
 
     self.player.move()
     
@@ -147,12 +155,11 @@ class Game:
         if self.player.isEmpowered:
           self.score += 200 * (2 ** self.player.ghostsEaten)
           self.player.ghostsEaten += 1
-          ghost.setState("dead")
+          ghost.setDead()
         else:
-          print("You lost!")
+          print("You lost! Score: ", self.score)
           self.endGame()
       pass
-    # print(self.score)
 
     # Check if all dots and big dots are collected
     if not any(isinstance(e, (Dot, BigDot)) for e in self.staticEntities):
@@ -164,4 +171,6 @@ class Game:
     elif event.key == pygame.K_LEFT: self.player.setDirection("L")
     elif event.key == pygame.K_UP: self.player.setDirection("U")
     elif event.key == pygame.K_DOWN: self.player.setDirection("D")
-    elif event.key == pygame.K_SPACE: self.player.stop()
+    elif event.key == pygame.K_SPACE: 
+      for ghost in self.movableEntities:
+        ghost.movePosition(2, 2)

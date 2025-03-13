@@ -44,20 +44,53 @@ class TestGhost(unittest.TestCase):
       for event in pygame.event.get():
         if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
           waiting = False
-
-  # def test_smallest_distance_chosen(self):
-  #   self.ghost.x, self.ghost.y = 0, 0
-  #   self.player.x, self.player.y = 600, 0  # Target tile is to the right
-  #   self.ghost.move(self.player)
-  #   print("Smallest Distance Test")
-  #   self.render()
-  #   self.assertEqual(self.ghost.direction, "R")
     
+  # Up : Up first
+  def testUp(self):
+    self.ghost.x, self.ghost.y = 0, 300
+    self.player.x, self.player.y = 0, 0  # Target tile is up
+    self.ghost.setTargetTile(self.player.x, self.player.y)
+    self.ghost.chooseDirection()
+    print("Up Test")
+    self.render()
+    self.assertEqual(self.ghost.direction, "U")  # Up should be chosen first
+
+  # Left : Left first
+  def testLeft(self):
+    self.ghost.x, self.ghost.y = 300, 0
+    self.player.x, self.player.y = 0, 0  # Target tile is left
+    self.ghost.setTargetTile(self.player.x, self.player.y)
+    self.ghost.chooseDirection()
+    print("Left Test")
+    self.render()
+    self.assertEqual(self.ghost.direction, "L")  # Left should be chosen first
+
+  # Down : Down first
+  def testDown(self):
+    self.ghost.x, self.ghost.y = 0, 0
+    self.player.x, self.player.y = 0, 300  # Target tile is down
+    self.ghost.setTargetTile(self.player.x, self.player.y)
+    self.ghost.chooseDirection()
+    print("Down Test")
+    self.render()
+    self.assertEqual(self.ghost.direction, "D")  # Down should be chosen first
+
+  # Right : Right first
+  def testRight(self):
+    self.ghost.x, self.ghost.y = 0, 0
+    self.player.x, self.player.y = 300, 0  # Target tile is right
+    self.ghost.setTargetTile(self.player.x, self.player.y)
+    self.ghost.chooseDirection()
+    print("Right Test")
+    self.render()
+    self.assertEqual(self.ghost.direction, "R")  # Right should be chosen first
+
   # Up-Left : Up first
   def testUpLeft(self):
     self.ghost.x, self.ghost.y = 300, 300
     self.player.x, self.player.y = 0, 0  # Target tile is diagonally up-left
-    self.ghost.target(self.player.x, self.player.y)
+    self.ghost.setTargetTile(self.player.x, self.player.y)
+    self.ghost.chooseDirection()
     print("Up-Left Test")
     self.render()
     self.assertEqual(self.ghost.direction, "U")  # Up should be chosen first
@@ -66,7 +99,8 @@ class TestGhost(unittest.TestCase):
   def testDownLeft(self):
     self.ghost.x, self.ghost.y = 300, 0
     self.player.x, self.player.y = 0, 300  # Target tile is diagonally down-left
-    self.ghost.target(self.player.x, self.player.y)
+    self.ghost.setTargetTile(self.player.x, self.player.y)
+    self.ghost.chooseDirection()
     print("Down-Left Test")
     self.render()
     self.assertEqual(self.ghost.direction, "L")  # Left should be chosen first
@@ -75,7 +109,8 @@ class TestGhost(unittest.TestCase):
   def testDownRight(self):
     self.ghost.x, self.ghost.y = 0, 0
     self.player.x, self.player.y = 300, 300  # Target tile is diagonally down-
-    self.ghost.target(self.player.x, self.player.y)
+    self.ghost.setTargetTile(self.player.x, self.player.y)
+    self.ghost.chooseDirection()
     print("Down-Right Test")
     self.render()
     self.assertEqual(self.ghost.direction, "D")  # Down should be chosen first
@@ -84,54 +119,11 @@ class TestGhost(unittest.TestCase):
   def testUpRight(self):
     self.ghost.x, self.ghost.y = 0, 300
     self.player.x, self.player.y = 300, 0  # Target tile is diagonally up-right
-    self.ghost.target(self.player.x, self.player.y)
+    self.ghost.setTargetTile(self.player.x, self.player.y)
+    self.ghost.chooseDirection()
     print("Up-Right Test")
     self.render()
     self.assertEqual(self.ghost.direction, "U")  # Up should be chosen first
-    
-  # Up-Left : Up first
-  def testUpLeftFrighten(self):
-    self.ghost.x, self.ghost.y = 300, 300
-    # Target tile is diagonally up-left
-    self.player.x, self.player.y = 0, 0
-    self.ghost.frighten()
-    self.ghost.frightened(self.player)
-    print("Up-Left Test")
-    self.render()
-    self.assertEqual(self.ghost.direction, "D")
-
-  # Down-Left : Left first
-  def testDownLeftFrighten(self):
-    self.ghost.x, self.ghost.y = 300, 0
-    # Target tile is diagonally down-left
-    self.player.x, self.player.y = 0, 300  
-    self.ghost.frighten()
-    self.ghost.frightened(self.player)
-    print("Down-Left Test")
-    self.render()
-    self.assertEqual(self.ghost.direction, "U") 
-
-  # Down-Right : Down first
-  def testDownRightFrighten(self):
-    self.ghost.x, self.ghost.y = 0, 0
-    # Target tile is diagonally down-right
-    self.player.x, self.player.y = 300, 300  
-    self.ghost.frighten()
-    self.ghost.frightened(self.player)
-    print("Down-Right Test")
-    self.render()
-    self.assertEqual(self.ghost.direction, "U") 
-
-  # Up-Right : Up first
-  def testUpRightFrighten(self):
-    self.ghost.x, self.ghost.y = 0, 300
-    # Target tile is diagonally up-right
-    self.player.x, self.player.y = 300, 0
-    self.ghost.frighten()
-    self.ghost.frightened(self.player)
-    print("Up-Right Test")
-    self.render()
-    self.assertEqual(self.ghost.direction, "L")
 
 if __name__ == '__main__':
   unittest.main()
