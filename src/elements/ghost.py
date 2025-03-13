@@ -1,5 +1,4 @@
 from elements.entity import Entity
-
 from queue import PriorityQueue
 
 import pygame # type: ignore
@@ -21,10 +20,15 @@ class Ghost(Entity):
     self.image = self.getImage()
     self.direction = None
     self.last_direction = None
-    self.spawn_tile = [x * self.tileWidth, y * self.tileHeight]
+    self.spawn_tile = [x, y]
     self.target_tile = [0, 0]
     self.movable = [True, True, True, True]
     self.inSpawnBox = True
+    self.dead_timer = 0
+
+    #pour test
+    self.last_position = (self.x, self.y)
+    self.idle_frames = 0
 
   def setSpeed(self, speed):
     self.speed = speed
@@ -34,6 +38,11 @@ class Ghost(Entity):
     self.image = self.getImage()
     if state != "frightened":
       self.setSpeed(2)
+    if state == "dead":
+      self.dead_timer = 6 * 60
+      self.x, self.y = self.spawn_tile[0] * 30, self.spawn_tile[1] * 30
+      self.inSpawnBox = False
+      self.target_tile = [14 * 30, 12 * 30]
 
   def getState(self):
     return self.state
@@ -46,12 +55,20 @@ class Ghost(Entity):
   
   def frighten(self):
     if not self.isDead():
-      self.last_direction = None
+      #self.last_direction = None
       self.setSpeed(0.5 * self.speed)
       self.setState("frightened")
 
   def move(self, player):
+    #print("This is ")
     # Ghost will only choose a new target if they are exactly on a tile
+    if self.isDead():
+      self.dead()
+      return
+    
+    if (self.state!="dead"):
+      self.dead_timer = 0
+    
     if self.x % 30 == 0 and self.y % 30 == 0:
 
       # Define the tile above the gate
@@ -68,7 +85,8 @@ class Ghost(Entity):
         # Otherwise go to the spawn tile and once on it set the state to chase
         else:
           self.dead()
-          if self.x == self.spawn_tile[0] and self.y == self.spawn_tile[1]:
+          #if self.x == self.spawn_tile[0] and self.y == self.spawn_tile[1]:
+          if self.x // 30 == self.spawn_tile[0] and self.y // 30 == self.spawn_tile[1]:
             self.inSpawnBox = True
             self.setState("chase")
       else:
@@ -82,8 +100,8 @@ class Ghost(Entity):
           self.scatter()
         elif self.state == "frightened":
           self.frightened(player)
-        elif self.state == "dead":
-          self.dead()
+        #elif self.state == "dead":
+          #self.dead()
 
       # Now that the ghost has chosen a direction, it will move in that direction
       if self.direction == "R" and self.movable[0]:
@@ -99,7 +117,7 @@ class Ghost(Entity):
         self.y += self.speed
         self.last_direction = self.direction
 
-    # If we aren't entirely on a tile, we keep moving in the same direction
+      # If we aren't entirely on a tile, we keep moving in the same direction
     else:
       if self.last_direction == "R" and self.movable[0]:
         self.x += self.speed
@@ -118,6 +136,24 @@ class Ghost(Entity):
 
     self.updateHitbox()
 
+    if (self.x, self.y) == self.last_position:
+      self.idle_frames += 1
+    else:
+      self.idle_frames = 0
+      self.last_position = (self.x, self.y)
+
+    if self.idle_frames >= 60:
+      if self.inSpawnBox and self.state != "dead":
+            if self.direction == "R":
+                self.movable[0] = True
+            elif self.direction == "L":
+                self.movable[1] = True
+            elif self.direction == "U":
+                self.movable[2] = True
+            elif self.direction == "D":
+                self.movable[3] = True
+      print(f"this is {self.ghost_type}, my state: {self.state}, my direction: {self.direction}, my movable: {self.movable}, my dead_timer: {self.dead_timer}, in spawnBox: {self.inSpawnBox}")
+ 
 
   def chase(self, player):
     if self.ghost_type == "red":
@@ -266,7 +302,6 @@ class Ghost(Entity):
     down = round(self.calculateDistance(self.x, self.y + 30, x, y))
     right = round(self.calculateDistance(self.x + 30, self.y, x, y))
 
-    print(f"Up: {up}, Left: {left}, Down: {down}, Right: {right}")
 
     directions = [
       (up, "U"),
@@ -278,17 +313,30 @@ class Ghost(Entity):
     # Reverse Sort by distance. If distances are equal, sort by the order of Up, Left, Down, Right
     directions = sorted(directions, key=lambda x: (x[0], ["R", "D", "L", "U"].index(x[1])), reverse=True)
 
-    print(f"Directions: {directions}")
 
     # Try to move in the direction with the maximum distance first
     for distance, direction in directions:
-      print(f"Direction: {direction}, canMove: {self.canMove(direction)}, isBacktracking: {self.isBacktracking(direction)}")
-      if self.canMove(direction) and not self.isBacktracking(direction):
+      #print(f"Direction: {direction}, canMove: {self.canMove(direction)}, isBacktracking: {self.isBacktracking(direction)}")
+      if self.canMove(direction) :
         self.setDirection(direction)
         break
 
   def dead(self):
-    self.target(self.spawn_tile[0], self.spawn_tile[1])
+    if self.dead_timer > 0:
+      self.dead_timer -= 1
+    else:
+      self.x = self.spawn_tile[0] * 30
+      self.y = self.spawn_tile[1] * 30
+      self.setState("chase")
+      self.inSpawnBox = False
+      self.speed = 2
+      self.state = "chase"
+      self.image = self.getImage()
+      self.direction = "U"
+      self.last_direction = "U"
+      self.target_tile = [14 * 30, 12 * 30]
+      self.movable = [True, True, True, True]
+      self.dead_timer = 0
 
   def setDirection(self, direction):
     self.direction = direction
