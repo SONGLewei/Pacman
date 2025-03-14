@@ -34,8 +34,10 @@ class Player(Entity):
       self.empowerCounter -= 1
       if self.empowerCounter <= 0:
         self.isEmpowered = False
+
         for ghost in ghosts:
-          ghost.setState("chase")
+          if not ghost.isDead() and not ghost.isSpawning():
+            ghost.setChasing()
 
   def move(self):
     if self.next_direction != None:
@@ -117,7 +119,6 @@ class Player(Entity):
     if self.hitbox.move(0, self.speed).colliderect(entity.hitbox):
       return True
     return False
-    
   
   def collide(self, entity) -> bool:
     return self.hitbox.colliderect(entity.hitbox)

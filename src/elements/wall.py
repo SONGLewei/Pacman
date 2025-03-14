@@ -15,4 +15,4 @@ class Wall(Entity):
     elif self.rotation == 1:
       pygame.draw.line(screen, 'blue', (self.x, self.y + 0.5 * self.tileHeight), (self.x + 30, self.y + 0.5 * self.tileHeight), 3)
     # Draw hitbox
-    # pygame.draw.rect(screen, 'yellow', self.hitbox, 1)
+    pygame.draw.rect(screen, 'yellow', self.hitbox, 1)
