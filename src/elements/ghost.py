@@ -28,6 +28,11 @@ class Ghost(Entity):
     self.spawn_tile = [x * self.tileWidth, y * self.tileHeight]
     self.target_tile = [0, 0]
     self.respawn_timer = 3 * 60
+    self.scatterTime = 15
+
+    # evite kale
+    self.last_position = (self.x, self.y)
+    self.frames_stuck = 0
     
     # Right, Left, Up, Down
     self.movable = [True, True, True, True]
@@ -41,12 +46,16 @@ class Ghost(Entity):
   def setDirection(self, direction):
     self.direction = direction
 
+  def setScatter(self):
+    self.state = "scatter"
+
   # Chasing behaviour
   def isChasing(self) -> bool:
     return self.state == "chase"
   
   def setChasing(self) -> None:
     self.state = "chase"
+    self.setSpeed(2)
     self.image = self.getImage()
 
   # Frightened behaviour
@@ -57,7 +66,7 @@ class Ghost(Entity):
     # If the ghost is dead, it won't be frightened
     if not self.isDead():
       self.last_direction = None
-      self.setSpeed(0.5 * self.speed)
+      self.setSpeed(1)
       self.state = "frightened"
       self.image = self.getImage()
   
@@ -67,6 +76,7 @@ class Ghost(Entity):
   
   def setDead(self) -> None:
     self.state = "dead"
+    #self.setSpeed(6)
     self.image = self.getImage()
 
   def respawn(self) -> None:
@@ -102,52 +112,72 @@ class Ghost(Entity):
   # Movement methods
 
   def move(self, player):
-    # Only choose a target when exactly on a tile
+    # Only choose a target when exactly on a tile 还是之前的逻辑横平竖直的点
     if self.isOnTile():
-      
-      if self.isDead():
-        # Move towards the spawn box
-        if (self.x // 30 == 14 and self.y // 30) == 12 or (self.x // 30 == 15 and self.y // 30 == 12):
-          self.enterSpawnBox()
-        elif self.isOnSpawnTile():
-          self.respawn()
-        else:
-          self.deadMove()
-        if self.isInSpawnBox():
-          pass
-            
-          # Move towards spawn tile
-          # if not self.isOnSpawnTile():
-          #   self.deadMove()
+        match self.state:
+            case "dead":
+                match True:
+                    case _ if ((self.x // 30 == 14 and self.y // 30 == 12) or (self.x // 30 == 15 and self.y // 30 == 12)):
+                        self.enterSpawnBox()
+                    case _ if self.isOnSpawnTile():
+                        self.respawn()
+                    case _:
+                        self.deadMove()
+                if self.isInSpawnBox():
+                    pass  # 可以在这里添加额外逻辑
 
-      if self.isSpawning():
-        if self.x // 30 == 14 and self.y // 30 == 12:
-          self.setChasing()
-        else:
-          self.last_direction = None
-          self.leaveSpawnBox()
+            case "spawning":
+                if self.x // 30 == 14 and self.y // 30 == 12:
+                      self.setScatter()
+                else:
+                    self.last_direction = None
+                    self.leaveSpawnBox()
+              
+            case "scatter":
+                self.scatterTime-=1
+                if self.scatterTime<=0:
+                  self.setChasing()
+                else:
+                  self.scatterMove()
 
-      if not self.isSpawning() and not self.isDead():
-       
-      # else:
-      #   # Choose target depending on the state of the ghost
-        if self.isChasing():
-          self.chaseMove(player)
-      #   elif self.isScattering():
-      #     self.scatterMove()
-      #   elif self.isFrightened():
-      #     self.frightenedMove()
+            case "chase":
+                self.chaseMove(player)
+
+            case "frightened":
+                #print("I want move now")
+                self.frightenedMove(player)
+
+            case _:
+                # 如果状态不匹配，则可以选择默认行为
+                pass
 
     else:
-      self.moveTowardsTarget()
+        self.moveTowardsTarget()
 
     # Tunnel teleportation
-    if self.x >= 900:
-      self.x = 0
-    elif self.x < 0:
-      self.x = 900
+        if self.x >= 900:
+            self.x = 0
+        elif self.x < 0:
+            self.x = 900
 
-    self.updateHitbox()
+        self.updateHitbox()
+
+        self.dontMove5()
+
+  def scatterMove(self):
+      # Blinky targets the top right corner
+      if self.ghost_type == "red":
+        self.setTargetTile(870, 30)
+      # Pinky targets the top left corner
+      elif self.ghost_type == "pink":
+        self.setTargetTile(30, 30)
+      # Inky targets the bottom right corner
+      elif self.ghost_type == "blue":
+        self.setTargetTile(870, 870)
+      elif self.ghost_type == "orange":
+        self.setTargetTile(0, 870)
+      self.chooseDirection()
+      self.moveTowardsTarget()
 
   def enterSpawnBox(self):
     tile_below_gate = (14, 14)
@@ -302,6 +332,28 @@ class Ghost(Entity):
         self.setDirection(direction)
         break
 
+  def frightenedMove(self,player):
+    x,y = player.x, player.y
+    up = round(self.calculateDistance(self.x, self.y - 30, x, y))
+    left = round(self.calculateDistance(self.x - 30, self.y, x, y))
+    down = round(self.calculateDistance(self.x, self.y + 30, x, y))
+    right = round(self.calculateDistance(self.x + 30, self.y, x, y))
+
+    directions = [
+      (up, "U"),
+      (left, "L"),
+      (down, "D"),
+      (right, "R")
+    ]
+    
+    directions = sorted(directions, key=lambda x: (x[0], ["R", "D", "L", "U"].index(x[1])), reverse=True)
+    for distance, direction in directions:
+      #print(f"Direction: {direction}, canMove: {self.canMove(direction)}, isBacktracking: {self.isBacktracking(direction)}")
+      if self.canMove(direction) :
+        self.setDirection(direction)
+        break
+    self.moveTowardsTarget()
+
 
   def setDirection(self, direction):
     self.direction = direction
@@ -374,6 +426,20 @@ class Ghost(Entity):
   # Checks if the ghost is currently colliding with an entity
   def collide(self, entity) -> bool:
     return self.hitbox.colliderect(entity.hitbox)
+  
+  def dontMove5(self):
+    current_position = (self.x, self.y)
+    if current_position == self.last_position:
+        self.frames_stuck += 1
+    else:
+        self.frames_stuck = 0
+        self.last_position = current_position
+
+    if self.frames_stuck >= 360:
+        print(f"Ghost {self.ghost_type} stuck for {self.frames_stuck} frames, resetting to spawn tile.")
+        self.movePosition(self.spawn_tile[0] // self.tileWidth, self.spawn_tile[1] // self.tileHeight)
+        self.setDead()
+        self.frames_stuck = 0
 
   def getImage(self):
     if self.isFrightened():

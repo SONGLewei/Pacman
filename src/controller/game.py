@@ -132,6 +132,7 @@ class Game:
             if ghost.willCollide(e):
               ghost.handleCollision(e)
 
+
       # Eating the dots
       if isinstance(e, Dot) and self.player.collide(e):
         self.score += 10
