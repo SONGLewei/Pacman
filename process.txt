@@ -1,0 +1,34 @@
+用神经网络个体+遗传算法实现玩Pacman的AI的过程
+    1、完整的创建游戏，使用网格严格规定玩家和幽灵的转向时间
+
+    2、构建拥有双隐藏层的Pacman个体，在神经网络中的三层中，我们有
+        输入层：负责参数的传入，接受游戏信息
+        隐藏层：用来让AI自己计算，自己做决策
+        输出层：根据AI隐藏层自己的计算，输出下一步移动的方向
+
+        对于16组数据的选择，我们首先在training_game里面添加了新的函数来获取相关数据，
+        然后我们需要对数据做归一化，归一化是为了收敛数据，增加数值稳定性
+
+        （要做的！写获取数据的方程，选择归一化的方式）
+        数据的获取是在training_AIs里面，我们通过获取场上的各种数据来得到input_vector，这些就是输入给
+        一个个神经网络AI的数据
+
+        数据的归一化目前很简单，就是在获取数据的时候直接除以一个整数
+
+
+Utilisation d'individus du réseau neuronal + algorithme génétique pour réaliser le processus de lecture de Pacman AI
+ 1. Créez entièrement le jeu, en utilisant des grilles pour réguler strictement le temps de rotation des joueurs et des fantômes
+
+ 2. Construisez un individu Pacman avec des doubles couches cachées. Parmi les trois couches du réseau neuronal, nous avons.
+ Couche d'entrée : responsable de la transmission des paramètres et de l'acceptation des informations sur le jeu
+ Couche cachée : utilisée pour permettre à l'IA de calculer et de prendre des décisions par elle-même
+ Couche de sortie : sur la base des propres calculs de la couche cachée de l'IA, affichez la direction du prochain mouvement.
+
+ Pour la sélection de 16 ensembles de données, nous avons d'abord ajouté une nouvelle fonction dans training_game pour obtenir des données pertinentes.
+ Ensuite, nous devons normaliser les données. La normalisation consiste à faire converger les données et à augmenter la stabilité numérique.
+
+ (À faire ! Écrivez l'équation pour obtenir les données et choisissez la méthode de normalisation)
+ Les données sont obtenues dans training_AIs. Nous obtenons le input_vector en obtenant diverses données sur le terrain. Ce sont les entrées à.
+ Données de l'IA du réseau neuronal une par une
+
+ La normalisation des données est actuellement très simple, elle consiste à diviser directement par un nombre entier lors de l'obtention des données.

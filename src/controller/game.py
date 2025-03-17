@@ -21,7 +21,6 @@ class Game:
     self.HEIGHT = 1000
     self.fps = 60
     self.score = 0
-    self.lives = 3
     self.isRunning = True
     pygame.display.init()
     pygame.font.init()

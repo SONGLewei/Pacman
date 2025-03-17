@@ -9,20 +9,13 @@ import numpy as np
 """
 class PacmanOfReseauNeuron:
     def __init__(self):
-        self.input_size = 16 # les valeurs decision
-        #self.hidden_size = 10 # hidden 
+        self.input_size = 17 # les valeurs decision
         self.hidden_layers = [20,10]
         self.output_size = 4 # 4 direction 
-        """
-        self.weights_input_to_hidden = np.random.uniform(-1, 1, (self.input_size, self.hidden_size))
-        self.bias_hidden = np.random.uniform(-1, 1, (1, self.hidden_size))
-        self.weights_hidden_to_output = np.random.uniform(-1, 1, (self.hidden_size, self.output_size))    
-        self.bias_output = np.random.uniform(-1, 1, (1, self.output_size))
-        self.fitness = 0
-        """
+        self.network_weights = self.init_network()
 
     def getDecision(self, input_vector):
-        action_probabilities = self.forward(input_vector)
+        action_probabilities = self.forward(self.network_weights, input_vector)
         direction_index = np.argmax(action_probabilities)
         directions = ["UP", "DOWN", "LEFT", "RIGHT"]
         return directions[direction_index]
@@ -31,12 +24,19 @@ class PacmanOfReseauNeuron:
         return np.maximum(0,x)
 
     def softmax(x):
-        e = np.exp(x)
-        return e//np.sum(e)
+        e = np.exp(x - np.max(x)) 
+        return e / np.sum(e)
 
-    #INIT A NEURON NETWORK and set random value
     def init_network(self):
+        """
+        Init a neuron network and set random value
+        [
+            17 rows * 20 columns,
+            20 rows * 10 columns,
+            10 rows * 4  columns
+        ]
 
+        """
         # FOR each floor, creat matrix
         layers = []
         prev_dim = self.input_size
@@ -51,6 +51,7 @@ class PacmanOfReseauNeuron:
 
 
     def forward(self,network_weights, input_vector):
+        # Handle input
         x = np.array(input_vector)
         # HIDDEN
         for idx, W in enumerate(network_weights[:-1]):
