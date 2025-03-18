@@ -17,12 +17,14 @@ class PacmanOfReseauNeuron:
     def getDecision(self, input_vector):
         action_probabilities = self.forward(self.network_weights, input_vector)
         direction_index = np.argmax(action_probabilities)
-        directions = ["UP", "DOWN", "LEFT", "RIGHT"]
+        directions = ["U", "D", "L", "R"]
         return directions[direction_index]
     
+    @staticmethod
     def relu(x):
         return np.maximum(0,x)
-
+    
+    @staticmethod
     def softmax(x):
         e = np.exp(x - np.max(x)) 
         return e / np.sum(e)

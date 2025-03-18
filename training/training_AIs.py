@@ -1,14 +1,18 @@
 import math
+from elements.cornerWall import CornerWall
+from elements.gate import Gate
 from src.controller.game import Game
 from elements.dot import Dot
 from elements.bigDot import BigDot
 from training.pacmanAI import PacmanOfReseauNeuron
+from elements.wall import Wall
 """
     The father is Game, we will use this to train the AI, UI will not be active.
 """
 class TrainingGame(Game):
     def __init__(self, ai_agent=None, max_steps=100000):
-        super().__init__()
+        super().__init__(headless=True)
+        
         self.ai_agent = ai_agent
         self.max_steps = max_steps
 
@@ -25,10 +29,11 @@ class TrainingGame(Game):
     def resetGameState(self):
         self.score = 0
         self.isRunning = True
-        self.loadLevel()
-        self.loadConfig()
         self.staticEntities.clear()
         self.movableEntities.clear()
+        self.loadConfig()
+        self.loadLevel()
+
 
     def get_game_state(self):
         """
@@ -52,14 +57,14 @@ class TrainingGame(Game):
         forth_ghost_dist = math.hypot(ghosts[3].x - pacman_x, ghosts[1].y - pacman_y)
 
         # Walls detection
-        wall_up = 1 if (pacman_x, pacman_y - 1) in self.walls else 0
-        wall_down = 1 if (pacman_x, pacman_y + 1) in self.walls else 0
-        wall_left = 1 if (pacman_x - 1, pacman_y) in self.walls else 0
-        wall_right = 1 if (pacman_x + 1, pacman_y) in self.walls else 0
+        wall_up = 0 if self.player.movable[2] else 1  # up
+        wall_down = 1 if not self.player.movable[3] else 0  # down
+        wall_left = 1 if not self.player.movable[1] else 0  # left
+        wall_right = 1 if not self.player.movable[0] else 0  # right
 
         # Ate bigDot or not
-        pacman_powered_up = 1 if self.player.powered_up else 0
-        ghost_scared = 1 if any(g.scared for g in self.movableEntities) else 0
+        pacman_powered_up = 1 if self.player.isEmpowered else 0
+        ghost_scared = 1 if any(g.state == "frightened" for g in self.movableEntities) else 0
 
         input_vector = [
             pacman_x / self.WIDTH,
@@ -91,12 +96,15 @@ class TrainingGame(Game):
             step+=1
             state = self.get_game_state()
             action = self.ai_agent.getDecision(state)
-
+            print(f"The direction is : {action}")
             self.player.setDirection(action)
             super().update()
+            #print(f"Pacman position after move: ({self.player.x}, {self.player.y})")
+            print(f"Pacman position after move: ({self.player.x}, {self.player.y}), Movable states: {self.player.movable}")
 
             if not self.isRunning:
                 break
 
-        print(f"Game end the score：{self.score}")
+        print(f"Game end the score: {self.score}")
+        return self.score
             

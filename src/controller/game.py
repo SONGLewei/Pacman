@@ -16,20 +16,26 @@ from elements.ghost import Ghost
 from typing import List
 
 class Game:
-  def __init__(self):
+  def __init__(self,headless = False):
     self.WIDTH = 900
     self.HEIGHT = 1000
     self.fps = 60
     self.score = 0
     self.isRunning = True
-    pygame.display.init()
-    pygame.font.init()
-    pygame.display.set_caption("Pac-Man")
-    self.font = pygame.font.Font('./assets/fonts/Ubuntu.ttf', 20)
-    self.screen = pygame.display.set_mode([self.WIDTH, self.HEIGHT])
-    self.clock = pygame.time.Clock()
     self.staticEntities: List[Entity] = []
     self.movableEntities: List[Entity] = []
+
+    if not headless:
+      pygame.display.init()
+      pygame.font.init()
+      pygame.display.set_caption("Pac-Man")
+      self.font = pygame.font.Font('./assets/fonts/Ubuntu.ttf', 20)
+      self.screen = pygame.display.set_mode([self.WIDTH, self.HEIGHT])
+      self.clock = pygame.time.Clock()
+    else:
+      self.font = None
+      self.screen = None
+      self.clock = None
     self.loadConfig()
 
   def loadConfig(self):

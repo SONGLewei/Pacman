@@ -9,11 +9,15 @@
         对于16组数据的选择，我们首先在training_game里面添加了新的函数来获取相关数据，
         然后我们需要对数据做归一化，归一化是为了收敛数据，增加数值稳定性
 
-        （要做的！写获取数据的方程，选择归一化的方式）
+        （要做的！写获取数据的方程，选择归一化的方式）结束啦
         数据的获取是在training_AIs里面，我们通过获取场上的各种数据来得到input_vector，这些就是输入给
         一个个神经网络AI的数据
 
         数据的归一化目前很简单，就是在获取数据的时候直接除以一个整数
+
+    3.18现在已经可以自动生成一个神经网络构成的AI了，这个双隐藏层的AI会自己计算权重，判断每一帧的时候该去什么方向
+    要做的！
+    3、要准备开始生成种群了，也就是初始化一堆个体。第一步呢是评价每个个体的适应度
 
 
 Utilisation d'individus du réseau neuronal + algorithme génétique pour réaliser le processus de lecture de Pacman AI
@@ -32,3 +36,7 @@ Utilisation d'individus du réseau neuronal + algorithme génétique pour réali
  Données de l'IA du réseau neuronal une par une
 
  La normalisation des données est actuellement très simple, elle consiste à diviser directement par un nombre entier lors de l'obtention des données.
+
+3.18 Il est désormais possible de générer automatiquement une IA composée d'un réseau de neurones. Cette IA à double couche cachée calculera ses propres poids et déterminera la direction à suivre dans chaque image.
+ Je dois le faire !
+ 3. Préparez-vous à commencer à générer la population, c'est-à-dire initialisez un groupe d'individus. La première étape consiste à évaluer la forme physique de chaque individu
