@@ -18,6 +18,15 @@
     3.18现在已经可以自动生成一个神经网络构成的AI了，这个双隐藏层的AI会自己计算权重，判断每一帧的时候该去什么方向
     要做的！
     3、要准备开始生成种群了，也就是初始化一堆个体。第一步呢是评价每个个体的适应度
+    我先写了生成第一个种群:productTheFirstGeneration来产生第一波个体们
+    然后就是运行generation:输入是不管多少个个体们，用list，输出是每个个体的大脑结构和分数和存活时间
+
+    我现在想根据遗传算法，因为我有40个个体，我发现我每次运行第一次，都有6-7个是在第一代算不错的婴儿，所以我就想在遗传算法的每一步中完整的保留前12.5%的个体进入下一代（这里取整个数就行）。
+
+    然后我会在第二部分个体选择crossover前50%的个体，相当于父母的两个列表随便交换，一一对应，
+    等价于两个列表的第n个数有50%的概率产生交换。如果算第一代的话，这时候就是20个个体进行交换产生10个后代，
+    所以我再重新交换第二次再产生10个后代。这时候一共有25个个体了。然后我会在这25个个体中任选15个，
+    每个个体的每个数，有5%的几率变异，再把这15个个体添加到下一个子代里。所以这样下一代就有了新的40个个体
 
 
 Utilisation d'individus du réseau neuronal + algorithme génétique pour réaliser le processus de lecture de Pacman AI
@@ -40,3 +49,12 @@ Utilisation d'individus du réseau neuronal + algorithme génétique pour réali
 3.18 Il est désormais possible de générer automatiquement une IA composée d'un réseau de neurones. Cette IA à double couche cachée calculera ses propres poids et déterminera la direction à suivre dans chaque image.
  Je dois le faire !
  3. Préparez-vous à commencer à générer la population, c'est-à-dire initialisez un groupe d'individus. La première étape consiste à évaluer la forme physique de chaque individu
+ J'ai d'abord écrit pour générer le premier groupe : productTheFirstGeneration pour générer la première vague d'individus.
+ Ensuite, il est exécuté et généré : l'entrée correspond au nombre d'individus que nous utilisons, utilisez une liste, et le résultat est la structure cérébrale, le score et le temps de partition de chaque personne.
+
+ Je veux maintenant utiliser l'algorithme génétique, car j'ai 40 individus, et j'ai découvert qu'à chaque fois que je cours pour la première fois, il y a 6 à 7 bébés qui sont considérés comme bons dans la première génération, donc je veux conserver complètement les 12,5 % précédents à chaque étape de l'algorithme génétique.
+
+ Ensuite je sélectionnerai les 50% des individus les plus performants dans la deuxième partie du crossover, ce qui équivaut à deux listes de parents facilement échangées, une correspondance individuelle,
+ Cela équivaut à une probabilité de 50 % que le nième numéro des deux listes soit échangé. Si un individu se reproduit et produit 10 petits,
+ Je rééchange donc une seconde fois et produis 10 descendants supplémentaires. Il y a actuellement 25 individus au total. Ensuite, je sélectionnerai au hasard 15 de ces 25 individus,
+ Chaque donnée de chaque individu présente une variation de 5 %, puis ces 15 individus sont ajoutés à la progéniture suivante. La prochaine génération compte donc 40 nouveaux individus
