@@ -1,5 +1,5 @@
 import numpy as np
-
+#import torch
 """
     C'est le structure d'un AI individuel de Pacman se fait par Réseau Neuron
     Il contien 3 couches:

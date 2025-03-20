@@ -1,0 +1,44 @@
+AI Evaluation Results
+==============================
+AI #1: Score = 330, Steps = 859
+AI #2: Score = 330, Steps = 859
+AI #3: Score = 330, Steps = 859
+AI #4: Score = 300, Steps = 859
+AI #5: Score = 260, Steps = 784
+AI #6: Score = 260, Steps = 784
+AI #7: Score = 250, Steps = 784
+AI #8: Score = 250, Steps = 784
+AI #9: Score = 250, Steps = 784
+AI #10: Score = 250, Steps = 784
+AI #11: Score = 250, Steps = 784
+AI #12: Score = 250, Steps = 784
+AI #13: Score = 250, Steps = 784
+AI #14: Score = 250, Steps = 784
+AI #15: Score = 250, Steps = 784
+AI #16: Score = 250, Steps = 784
+AI #17: Score = 220, Steps = 784
+AI #18: Score = 220, Steps = 784
+AI #19: Score = 220, Steps = 784
+AI #20: Score = 220, Steps = 784
+AI #21: Score = 220, Steps = 784
+AI #22: Score = 220, Steps = 784
+AI #23: Score = 220, Steps = 784
+AI #24: Score = 220, Steps = 784
+AI #25: Score = 180, Steps = 784
+AI #26: Score = 180, Steps = 784
+AI #27: Score = 170, Steps = 784
+AI #28: Score = 170, Steps = 784
+AI #29: Score = 170, Steps = 784
+AI #30: Score = 170, Steps = 784
+AI #31: Score = 170, Steps = 784
+AI #32: Score = 160, Steps = 784
+AI #33: Score = 160, Steps = 784
+AI #34: Score = 150, Steps = 874
+AI #35: Score = 150, Steps = 874
+AI #36: Score = 130, Steps = 724
+AI #37: Score = 100, Steps = 724
+AI #38: Score = 100, Steps = 724
+AI #39: Score = 10, Steps = 468
+AI #40: Score = 10, Steps = 468
+==============================
+Total AIs Evaluated: 40

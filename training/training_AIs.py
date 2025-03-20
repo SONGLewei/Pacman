@@ -55,10 +55,82 @@ class TrainingGame(Game):
                 special_file = f"high_score_ai_{self.score}.txt"
                 self.saveHighScoreAI(pacAI, self.score, step, special_file)
                 print(f"High score AI found! Saved to {special_file}")
-                return results
+                #return results
             
         results.sort(key=lambda x: x[1],reverse=True)
         return results
+
+    def evolve_population(self,results, retain_ratio=0.125, mutation_rate=0.03, num_offspring=15):
+        """
+        evolve the next population of AI:40 indi   20 parents 10  20enfants 25
+            1. keep top 12.5% individu 5
+            2. crossover top 50% individu, each pair change weight on 50%, 2 times of crossover
+            3. choose 15 AIs in the new generation, each weight have 2% to mutation
+            4. the new generation also has 40 individu
+        """
+
+        population = [ai for ai, _, _ in results]
+        scores = [score for _, score, _ in results]
+
+        sorted_population = [p for _, p in sorted(zip(scores, population), key=lambda x: x[0], reverse=True)]
+
+        num_retained = max(1, int(len(population) * retain_ratio))
+        next_generation = sorted_population[:num_retained]
+
+        num_parents = len(population) // 2
+        parents = sorted_population[:num_parents]
+
+        offspring = []
+        for _ in range(2):
+            np.random.shuffle(parents)
+            for i in range(0, len(parents) - 1, 2):
+                p1, p2 = parents[i], parents[i+1]
+                child = self.crossover(p1, p2)
+                offspring.append(child)
+                if len(offspring) >= 20:
+                    break
+
+        next_generation.extend(offspring)
+
+        mutated_offspring = np.random.choice(next_generation, num_offspring, replace=False)
+        for individual in mutated_offspring:
+            self.mutate(individual, mutation_rate)
+
+        next_generation.extend(mutated_offspring)
+
+        return next_generation
+    
+    def crossover(self,parent1, parent2):
+        """
+        crossover dad and mom, choose one, eachone has 50% percent
+        """
+        child_weights = []
+        alpha = np.random.uniform(0.5, 0.9)
+        for w1, w2 in zip(parent1.network_weights, parent2.network_weights):
+            """
+            Here, I choosed to let EACH data have 50% proba to get into the new children.
+            But this perhaps will     change the good baby     , so this is difficult to get the better
+
+            mask = np.random.rand(*w1.shape) < crossover_ratio
+            child_w = np.where(mask, w1, w2)
+            child_weights.append(child_w)
+            """
+            child_w = alpha * w1 + (1-alpha)*w2
+            child_weights.append(child_w)
+
+        child = PacmanOfReseauNeuron()
+        child.network_weights = child_weights
+        return child
+
+
+    def mutate(self,individual, mutation_rate=0.01, mutation_strength=0.1):
+        """
+        each weight has 2% to mutate
+        """
+        for i in range(len(individual.network_weights)):
+            mutation_mask = np.random.rand(*individual.network_weights[i].shape) < mutation_rate
+            mutation_values = np.random.normal(0, mutation_strength, individual.network_weights[i].shape)
+            individual.network_weights[i] += mutation_values * mutation_mask
 
     def startGame(self):
         self.resetGameState()

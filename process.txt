@@ -28,6 +28,20 @@
     所以我再重新交换第二次再产生10个后代。这时候一共有25个个体了。然后我会在这25个个体中任选15个，
     每个个体的每个数，有5%的几率变异，再把这15个个体添加到下一个子代里。所以这样下一代就有了新的40个个体
 
+    上面那个遗传给后代的方式是不合理的，过度的基因重组反而会降低个体的能力
+
+    所以我决定孩子70%的权重来自一方，30%来自另一方，在这样的一个改动下，生存时间最长是1669，10代之后的最大分数是170分
+    word2025.3.19
+
+    让我来试试增加一倍的初代个体（80），这样的话我发现有一个个体可以活到上限了，即使它不怎么吃豆
+
+    注：目前计算适应度的唯一指标是个体的得分
+
+    我现在再来增加一倍个体，在基因的多样性给他拉满（160） 到现在为止一直是每个点5%的变异率，有的高了，基因突变在自然界没有那么高
+    所以会导致个体有时候的表现变差
+
+    出现了种群趋同，前12.5%的个体取代了所有个体，所以提高变异率，父母交换0.5到0.9随机交换，变异率变为3%
+
 
 Utilisation d'individus du réseau neuronal + algorithme génétique pour réaliser le processus de lecture de Pacman AI
  1. Créez entièrement le jeu, en utilisant des grilles pour réguler strictement le temps de rotation des joueurs et des fantômes
@@ -58,3 +72,17 @@ Utilisation d'individus du réseau neuronal + algorithme génétique pour réali
  Cela équivaut à une probabilité de 50 % que le nième numéro des deux listes soit échangé. Si un individu se reproduit et produit 10 petits,
  Je rééchange donc une seconde fois et produis 10 descendants supplémentaires. Il y a actuellement 25 individus au total. Ensuite, je sélectionnerai au hasard 15 de ces 25 individus,
  Chaque donnée de chaque individu présente une variation de 5 %, puis ces 15 individus sont ajoutés à la progéniture suivante. La prochaine génération compte donc 40 nouveaux individus
+
+ La méthode ci-dessus de transmission à la progéniture est déraisonnable. Une recombinaison génétique excessive réduira les capacités de l'individu.
+
+ J'ai donc décidé que 70 % du poids de l'enfant venait d'un côté et 30 % de l'autre côté. Avec un tel changement, la durée de survie la plus longue est de 1669 et le score maximum après 10 générations est de 170 points.
+ mot2025.3.19
+
+ Permettez-moi d'essayer de doubler le nombre d'individus de première génération (80). Dans ce cas, j'ai découvert qu'un individu peut vivre jusqu'à la limite supérieure, même s'il ne mange pas beaucoup de haricots.
+
+ Remarque : Le seul indicateur actuellement utilisé pour calculer la condition physique est le score individuel.
+
+ Maintenant, je vais doubler le nombre d'individus et les remplir de diversité génétique (160). Jusqu'à présent, le taux de mutation à chaque point a été de 5 %. Certaines mutations génétiques ne sont pas si élevées dans la nature.
+ Par conséquent, cela entraînera parfois une détérioration des performances de l’individu.
+
+ Une convergence de population se produit et les 12,5 % des individus les plus riches remplacent tous les individus, de sorte que le taux de mutation est augmenté au hasard de 0,5 à 0,9 et le taux de mutation devient 3 %.
