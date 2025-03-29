@@ -21,7 +21,8 @@
     我先写了生成第一个种群:productTheFirstGeneration来产生第一波个体们
     然后就是运行generation:输入是不管多少个个体们，用list，输出是每个个体的大脑结构和分数和存活时间
 
-    我现在想根据遗传算法，因为我有40个个体，我发现我每次运行第一次，都有6-7个是在第一代算不错的婴儿，所以我就想在遗传算法的每一步中完整的保留前12.5%的个体进入下一代（这里取整个数就行）。
+    我现在想根据遗传算法，因为我有40个个体，我发现我每次运行第一次，都有6-7个是在第一代算不错的婴儿，
+    所以我就想在遗传算法的每一步中完整的保留前12.5%的个体进入下一代（这里取整个数就行）。
 
     然后我会在第二部分个体选择crossover前50%的个体，相当于父母的两个列表随便交换，一一对应，
     等价于两个列表的第n个数有50%的概率产生交换。如果算第一代的话，这时候就是20个个体进行交换产生10个后代，
@@ -41,6 +42,8 @@
     所以会导致个体有时候的表现变差
 
     出现了种群趋同，前12.5%的个体取代了所有个体，所以提高变异率，父母交换0.5到0.9随机交换，变异率变为3%
+
+    3.24：前50%截断容易导致多样性不足，所以尝试改成轮盘赌
 
 
 Utilisation d'individus du réseau neuronal + algorithme génétique pour réaliser le processus de lecture de Pacman AI
@@ -86,3 +89,4 @@ Utilisation d'individus du réseau neuronal + algorithme génétique pour réali
  Par conséquent, cela entraînera parfois une détérioration des performances de l’individu.
 
  Une convergence de population se produit et les 12,5 % des individus les plus riches remplacent tous les individus, de sorte que le taux de mutation est augmenté au hasard de 0,5 à 0,9 et le taux de mutation devient 3 %.
+ 3.24 : La première troncature de 50 % peut facilement conduire à une diversité insuffisante, alors essayez de la changer en roulette

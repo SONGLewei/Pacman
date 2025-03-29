@@ -1,6 +1,6 @@
 from elements.entity import Entity
 
-import pygame # type: ignore
+import pygame
 
 player_images = []
 for i in range(1, 5):

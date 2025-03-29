@@ -17,7 +17,7 @@ if __name__ == "__main__":
     """
 
     game = TrainingGame()
-    population = game.productTheFirstGeneration(160)
+    population = game.productTheFirstGeneration(80)
 
     num_generations = 10
     for gen in range(num_generations):
@@ -31,4 +31,5 @@ if __name__ == "__main__":
         print(f"Best AI Score in Generation {gen+1}: {best_score}")
 
     game.saveRes(results, output_file="final_results.txt")
+    game.saveResJson(results, output_file="final_res_json.json")
     print("Evolution completed!")

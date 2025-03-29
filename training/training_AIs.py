@@ -2,6 +2,7 @@ import math
 
 import numpy as np
 import json
+import random
 from elements.cornerWall import CornerWall
 from elements.gate import Gate
 from src.controller.game import Game
@@ -19,7 +20,7 @@ class TrainingGame(Game):
         self.ai_agent = ai_agent
         self.max_steps = max_steps
 
-    def productTheFirstGeneration(self,population_size = 40):
+    def productTheFirstGeneration(self,population_size):
         """
         The first step of GA, product a population with size of 40 if not indicate the nb
         of the generation
@@ -60,45 +61,105 @@ class TrainingGame(Game):
         results.sort(key=lambda x: x[1],reverse=True)
         return results
 
-    def evolve_population(self,results, retain_ratio=0.125, mutation_rate=0.03, num_offspring=15):
+    def evolve_population(self,results, mutation_rate=0.03,mutation_strength=0.1):
         """
         evolve the next population of AI:40 indi   20 parents 10  20enfants 25
             1. keep top 12.5% individu 5
             2. crossover top 50% individu, each pair change weight on 50%, 2 times of crossover
             3. choose 15 AIs in the new generation, each weight have 2% to mutation
             4. the new generation also has 40 individu
-        """
 
+        Evolve next generation:
+            1. Keep 2 elites (best 2).
+            2. Use roulette wheel to pick parents, produce 2 children each time
+            3. Fill up the next generation to match population_size
+            4. Mutate all individuals
+            5. Return next generation
+        """
+        # take score and steps
         population = [ai for ai, _, _ in results]
         scores = [score for _, score, _ in results]
 
-        sorted_population = [p for _, p in sorted(zip(scores, population), key=lambda x: x[0], reverse=True)]
+        #get the population size
+        population_size = len(results)
 
-        num_retained = max(1, int(len(population) * retain_ratio))
-        next_generation = sorted_population[:num_retained]
+        sum_score = sum(scores)
 
-        num_parents = len(population) // 2
-        parents = sorted_population[:num_parents]
+        sorted_results = sorted(results, key=lambda x: x[1],reverse=True)
+        elite1 = sorted_results[0][0]
+        elite2 = sorted_results[1][0]
 
-        offspring = []
-        for _ in range(2):
-            np.random.shuffle(parents)
-            for i in range(0, len(parents) - 1, 2):
-                p1, p2 = parents[i], parents[i+1]
-                child = self.crossover(p1, p2)
-                offspring.append(child)
-                if len(offspring) >= 20:
-                    break
+        next_generation =[elite1,elite2]
 
-        next_generation.extend(offspring)
+        def roulette_selection():
+            pick = random.random() * sum_score
+            cumulative = 0
+            for(ai,sc,_) in results:
+                cumulative+=sc
+                if cumulative>pick:
+                    return ai
 
-        mutated_offspring = np.random.choice(next_generation, num_offspring, replace=False)
-        for individual in mutated_offspring:
-            self.mutate(individual, mutation_rate)
+        while len(next_generation) < population_size:
+            p1 = roulette_selection()
+            p2 = roulette_selection()
 
-        next_generation.extend(mutated_offspring)
+            if p1 == p2:
+                p2 = roulette_selection()
+
+            child1, child2 = self.uniform_crossover(p1, p2)
+            next_generation.append(child1)
+            if len(next_generation) < population_size:
+                next_generation.append(child2)
+
+        for individual in next_generation:
+            self.mutate(individual, mutation_rate, mutation_strength)
 
         return next_generation
+
+    def uniform_crossover(self, parent1, parent2):
+        child1_weights = []
+        child2_weights = []
+        for w1, w2 in zip(parent1.network_weights, parent2.network_weights):
+            mask = np.random.rand(*w1.shape) < 0.5
+            c1 = np.where(mask, w1, w2)
+            c2 = np.where(mask, w2, w1)
+            child1_weights.append(c1)
+            child2_weights.append(c2)
+        from training.pacmanAI import PacmanOfReseauNeuron
+        c1 = PacmanOfReseauNeuron()
+        c2 = PacmanOfReseauNeuron()
+        c1.network_weights = child1_weights
+        c2.network_weights = child2_weights
+        return c1, c2
+    """
+    sorted_population = [p for _, p in sorted(zip(scores, population), key=lambda x: x[0], reverse=True)]
+
+    num_retained = max(1, int(len(population) * retain_ratio))
+    next_generation = sorted_population[:num_retained]
+
+    num_parents = len(population) // 2
+    parents = sorted_population[:num_parents]
+
+    offspring = []
+    for _ in range(2):
+        np.random.shuffle(parents)
+        for i in range(0, len(parents) - 1, 2):
+            p1, p2 = parents[i], parents[i+1]
+            child = self.crossover(p1, p2)
+            offspring.append(child)
+            if len(offspring) >= 20:
+                break
+
+    next_generation.extend(offspring)
+
+    mutated_offspring = np.random.choice(next_generation, num_offspring, replace=False)
+    for individual in mutated_offspring:
+        self.mutate(individual, mutation_rate)
+
+    next_generation.extend(mutated_offspring)
+
+    return next_generation
+    """
     
     def crossover(self,parent1, parent2):
         """
@@ -123,7 +184,7 @@ class TrainingGame(Game):
         return child
 
 
-    def mutate(self,individual, mutation_rate=0.01, mutation_strength=0.1):
+    def mutate(self,individual, mutation_rate=0.05, mutation_strength=0.15):
         """
         each weight has 2% to mutate
         """
@@ -166,8 +227,23 @@ class TrainingGame(Game):
         ghosts = sorted(self.movableEntities, key=lambda g: math.hypot(g.x - pacman_x, g.y - pacman_y))
         nearest_ghost_dist = math.hypot(ghosts[0].x - pacman_x, ghosts[0].y - pacman_y)
         second_ghost_dist = math.hypot(ghosts[1].x - pacman_x, ghosts[1].y - pacman_y)
-        third_ghost_dist = math.hypot(ghosts[2].x - pacman_x, ghosts[1].y - pacman_y)
-        forth_ghost_dist = math.hypot(ghosts[3].x - pacman_x, ghosts[1].y - pacman_y)
+        third_ghost_dist = math.hypot(ghosts[2].x - pacman_x, ghosts[2].y - pacman_y)
+        forth_ghost_dist = math.hypot(ghosts[3].x - pacman_x, ghosts[3].y - pacman_y)
+
+        # What's the direction of the ghosts
+        pacman_pos = (pacman_x, pacman_y)
+        ghost_angles = []
+
+        for ghost in ghosts[:4]:
+            ghost_pos = (ghost.x, ghost.y)
+            angle = self.angle_between_radians(pacman_pos, ghost_pos)
+            ghost_angles.append(angle)
+
+        # (0,2π)
+        direction_1_ghost = ghost_angles[0]
+        direction_2_ghost = ghost_angles[1]
+        direction_3_ghost = ghost_angles[2]
+        direction_4_ghost = ghost_angles[3]
 
         # Walls detection
         wall_up = 0 if self.player.movable[2] else 1  # up
@@ -196,7 +272,11 @@ class TrainingGame(Game):
             wall_left,
             wall_right,
             pacman_powered_up,
-            self.score / 1000
+            self.score / 1000,
+            direction_1_ghost,
+            direction_2_ghost,
+            direction_3_ghost,
+            direction_4_ghost,
         ]
 
         return input_vector
@@ -283,3 +363,11 @@ class TrainingGame(Game):
             json.dump(data, f, indent=4)
 
         print(f"High score AI saved in {output_file}")
+
+    @staticmethod
+    def angle_between_radians(p1, p2):
+        dx = p2[0] - p1[0]
+        dy = p2[1] - p1[1]
+        angle = math.atan2(dy, dx)
+        angle_0_to_2pi = angle % (2 * math.pi)
+        return angle_0_to_2pi

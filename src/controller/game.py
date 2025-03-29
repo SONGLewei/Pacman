@@ -163,7 +163,7 @@ class Game:
           self.player.ghostsEaten += 1
           ghost.setDead()
         else:
-          print("You lost! Score: ", self.score)
+          print("Score: ", self.score)
           self.endGame()
       pass
 
