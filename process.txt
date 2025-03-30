@@ -45,6 +45,17 @@
 
     3.24：前50%截断容易导致多样性不足，所以尝试改成轮盘赌
 
+    3.30 推测遗传uniforme可能并不会在神经元结构下取得良好的表现，所以我尝试了single point crossover，
+    然后我在第一次采用种群数量50，代数10代的时候，有了惊人的优化。230 -350 -420 -360 -320 -340 -380 -330
+
+    好吧让我失望了，推测是平等的变异规则导致丢失了优良个体
+
+    我在做一个可视化AI，超级经典的坑：AI每一帧都做决策，帧率降低了行为就会变烂，所以尝试加入帧率归一化
+
+    很好，归一化取得了很大的成功，我采用的策略是添加一个新的输入，计算这一帧到上一帧的时间，我会normalize帧率
+    让current fps = 1/每一帧率的duration。这样得到了实时帧率之后，我们就可以归一化这个帧率/100作为一个变量输入。
+
+    这样的效果很好，我只用50种群数量和5代，我的训练结果和展示结果就变的差不多了，也就是说AI 适应了这个输入！
 
 Utilisation d'individus du réseau neuronal + algorithme génétique pour réaliser le processus de lecture de Pacman AI
  1. Créez entièrement le jeu, en utilisant des grilles pour réguler strictement le temps de rotation des joueurs et des fantômes
@@ -90,3 +101,15 @@ Utilisation d'individus du réseau neuronal + algorithme génétique pour réali
 
  Une convergence de population se produit et les 12,5 % des individus les plus riches remplacent tous les individus, de sorte que le taux de mutation est augmenté au hasard de 0,5 à 0,9 et le taux de mutation devient 3 %.
  3.24 : La première troncature de 50 % peut facilement conduire à une diversité insuffisante, alors essayez de la changer en roulette
+
+ 3.30 J'ai émis l'hypothèse que l'uniformité génétique pourrait ne pas fonctionner correctement dans la structure des neurones, j'ai donc essayé le croisement en un seul point,
+Puis, lorsque j’ai adopté pour la première fois la taille de la population de 50 et le nombre de générations de 10, j’ai réalisé une optimisation étonnante. 230 -350 -420 -360 -320 -340 -380 -330
+
+D'accord, je suis déçu. Je suppose que ce sont les règles de mutation égale qui conduisent à la perte d’excellents individus.
+
+Je travaille sur une IA visuelle. Un écueil super classique : l’IA prend des décisions à chaque image. Si la fréquence d'images est réduite, le comportement deviendra mauvais, essayez donc d'ajouter une normalisation de la fréquence d'images.
+
+Eh bien, la normalisation a été un grand succès, la stratégie que j'ai adoptée était d'ajouter une nouvelle entrée, de calculer le temps entre cette image et l'image précédente, et je normaliserais la fréquence d'images
+Soit fps actuel = 1/durée de chaque fréquence d'images. Après avoir obtenu la fréquence d'images en temps réel de cette manière, nous pouvons normaliser la fréquence d'images/100 en tant qu'entrée variable.
+
+Cela fonctionne très bien. Je n'utilise que 50 populations et 5 générations, et mes résultats d'entraînement et mes résultats d'affichage sont quasiment les mêmes, ce qui veut dire que l'IA s'est adaptée à cet apport !

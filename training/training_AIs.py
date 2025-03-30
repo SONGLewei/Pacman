@@ -3,6 +3,7 @@ import math
 import numpy as np
 import json
 import random
+import time
 from elements.cornerWall import CornerWall
 from elements.gate import Gate
 from src.controller.game import Game
@@ -19,7 +20,7 @@ class TrainingGame(Game):
         
         self.ai_agent = ai_agent
         self.max_steps = max_steps
-
+        self.last_time = time.time()
     def productTheFirstGeneration(self,population_size):
         """
         The first step of GA, product a population with size of 40 if not indicate the nb
@@ -38,6 +39,7 @@ class TrainingGame(Game):
         for pacAI in pacAIS:
             self.resetGameState()
             self.ai_agent = pacAI
+            self.last_position = (self.player.x, self.player.y)
 
             step = 0
             while self.isRunning and step < self.max_steps:
@@ -46,6 +48,7 @@ class TrainingGame(Game):
                 action = self.ai_agent.getDecision(state)
                 self.player.setDirection(action)
                 super().update()
+                self.dontMove360()
 
                 if not self.isRunning:
                     break
@@ -60,6 +63,24 @@ class TrainingGame(Game):
             
         results.sort(key=lambda x: x[1],reverse=True)
         return results
+    
+    def dontMove360(self):
+        """
+        Check if the player is stuck in a loop.
+        If the player is stuck in a loop, end the game.
+        This is the situations of the bugs.
+        """
+        current_position = (self.player.x, self.player.y)
+        if current_position == self.last_position:
+            self.frames_stuck += 1
+        else:
+            self.frames_stuck = 0
+            self.last_position = current_position
+
+        if self.frames_stuck >= 360:
+            print(f"Player stuck for 360 frames,End the game")
+            print("Score: ", self.score)
+            self.endGame()
 
     def evolve_population(self,results, mutation_rate=0.03,mutation_strength=0.1):
         """
@@ -106,13 +127,15 @@ class TrainingGame(Game):
             if p1 == p2:
                 p2 = roulette_selection()
 
-            child1, child2 = self.uniform_crossover(p1, p2)
+            #child1, child2 = self.uniform_crossover(p1, p2)
+            child1, child2 = self.single_point_crossover(p1, p2)
             next_generation.append(child1)
             if len(next_generation) < population_size:
                 next_generation.append(child2)
 
-        for individual in next_generation:
-            self.mutate(individual, mutation_rate, mutation_strength)
+        for i,individual in enumerate(next_generation):
+            if i>=2:
+                self.mutate(individual, mutation_rate, mutation_strength)
 
         return next_generation
 
@@ -125,41 +148,12 @@ class TrainingGame(Game):
             c2 = np.where(mask, w2, w1)
             child1_weights.append(c1)
             child2_weights.append(c2)
-        from training.pacmanAI import PacmanOfReseauNeuron
+
         c1 = PacmanOfReseauNeuron()
         c2 = PacmanOfReseauNeuron()
         c1.network_weights = child1_weights
         c2.network_weights = child2_weights
         return c1, c2
-    """
-    sorted_population = [p for _, p in sorted(zip(scores, population), key=lambda x: x[0], reverse=True)]
-
-    num_retained = max(1, int(len(population) * retain_ratio))
-    next_generation = sorted_population[:num_retained]
-
-    num_parents = len(population) // 2
-    parents = sorted_population[:num_parents]
-
-    offspring = []
-    for _ in range(2):
-        np.random.shuffle(parents)
-        for i in range(0, len(parents) - 1, 2):
-            p1, p2 = parents[i], parents[i+1]
-            child = self.crossover(p1, p2)
-            offspring.append(child)
-            if len(offspring) >= 20:
-                break
-
-    next_generation.extend(offspring)
-
-    mutated_offspring = np.random.choice(next_generation, num_offspring, replace=False)
-    for individual in mutated_offspring:
-        self.mutate(individual, mutation_rate)
-
-    next_generation.extend(mutated_offspring)
-
-    return next_generation
-    """
     
     def crossover(self,parent1, parent2):
         """
@@ -182,11 +176,62 @@ class TrainingGame(Game):
         child = PacmanOfReseauNeuron()
         child.network_weights = child_weights
         return child
+    
+    def single_point_crossover(self, parent1, parent2):
+        """
+        Single-Point Crossover。
+        """
+        def flatten_network(weights_list):
+            flat_parts = []
+            shapes = []
+            for w in weights_list:
+                shapes.append(w.shape)
+                flat_parts.append(w.flatten())
+            flat_array = np.concatenate(flat_parts)
+            return flat_array, shapes
+
+        def unflatten_network(flat_array, shapes):
+            restored = []
+            offset = 0
+            for shape in shapes:
+                size = np.prod(shape)
+                w_flat = flat_array[offset: offset + size]
+                w_reshaped = w_flat.reshape(shape)
+                restored.append(w_reshaped)
+                offset += size
+            return restored
+
+        parent1_flat, shapes = flatten_network(parent1.network_weights)
+        parent2_flat, _      = flatten_network(parent2.network_weights)
+
+        length = len(parent1_flat)
+
+        crossover_point = random.randint(1, length - 1)
+
+        child1_flat = np.concatenate([
+            parent1_flat[:crossover_point],
+            parent2_flat[crossover_point:]
+        ])
+
+        child2_flat = np.concatenate([
+            parent2_flat[:crossover_point],
+            parent1_flat[crossover_point:]
+        ])
+
+        child1_weights = unflatten_network(child1_flat, shapes)
+        child2_weights = unflatten_network(child2_flat, shapes)
+
+        c1 = PacmanOfReseauNeuron()
+        c1.network_weights = child1_weights
+        c2 = PacmanOfReseauNeuron()
+        c2.network_weights = child2_weights
+
+        return c1, c2
 
 
     def mutate(self,individual, mutation_rate=0.05, mutation_strength=0.15):
         """
-        each weight has 2% to mutate
+        each weight has 5% to mutate
         """
         for i in range(len(individual.network_weights)):
             mutation_mask = np.random.rand(*individual.network_weights[i].shape) < mutation_rate
@@ -220,7 +265,7 @@ class TrainingGame(Game):
         small_dots = [e for e in self.staticEntities if isinstance(e,Dot)]
         big_dots = [e for e in self.staticEntities if isinstance(e,BigDot)]
 
-        nearest_small_dot_dist = min((math.hypot(dot.x - pacman_x, dot.y - pacman_y - pacman_y) for dot in small_dots), default=0)
+        nearest_small_dot_dist = min((math.hypot(dot.x - pacman_x, dot.y - pacman_y) for dot in small_dots), default=0)
         nearest_big_dot_dist = min((math.hypot(dot.x - pacman_x, dot.y - pacman_y) for dot in big_dots), default=0)
 
         # The nearest 2 ghosts
@@ -255,6 +300,15 @@ class TrainingGame(Game):
         pacman_powered_up = 1 if self.player.isEmpowered else 0
         ghost_scared = 1 if any(g.state == "frightened" for g in self.movableEntities) else 0
 
+        now = time.time()
+        frame_duration = now - self.last_time
+        self.last_time = now
+
+        frame_duration = max(frame_duration,1e-6)
+        self.current_fps = 1.0 / frame_duration
+
+        normalized_fps = self.current_fps/100.0
+
         input_vector = [
             pacman_x / self.WIDTH,
             pacman_y / self.HEIGHT,
@@ -277,6 +331,7 @@ class TrainingGame(Game):
             direction_2_ghost,
             direction_3_ghost,
             direction_4_ghost,
+            normalized_fps,
         ]
 
         return input_vector

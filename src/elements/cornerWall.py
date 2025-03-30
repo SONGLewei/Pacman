@@ -25,4 +25,4 @@ class CornerWall(Entity):
       pygame.draw.line(screen, 'blue', (self.x, self.y + 0.5 * self.tileHeight), (self.x + 0.5 * self.tileWidth, self.y + 0.5 * self.tileHeight), 3)
       pygame.draw.line(screen, 'blue', (self.x + 0.5 * self.tileWidth, self.y), (self.x + 0.5 * self.tileWidth, self.y + 0.5 * self.tileHeight), 3)
     # Draw hitbox
-    pygame.draw.rect(screen, 'yellow', self.hitbox, 1)
+    pygame.draw.rect(screen, 'black', self.hitbox, 1)

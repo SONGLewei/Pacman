@@ -124,7 +124,7 @@ class Ghost(Entity):
                     case _:
                         self.deadMove()
                 if self.isInSpawnBox():
-                    pass  # 可以在这里添加额外逻辑
+                    pass
 
             case "spawning":
                 if self.x // 30 == 14 and self.y // 30 == 12:
@@ -148,7 +148,6 @@ class Ghost(Entity):
                 self.frightenedMove(player)
 
             case _:
-                # 如果状态不匹配，则可以选择默认行为
                 pass
 
     else:

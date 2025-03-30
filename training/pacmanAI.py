@@ -9,7 +9,7 @@ import numpy as np
 """
 class PacmanOfReseauNeuron:
     def __init__(self):
-        self.input_size = 21 # les valeurs decision
+        self.input_size = 22 # les valeurs decision
         self.hidden_layers = [20,10]
         self.output_size = 4 # 4 direction 
         self.network_weights = self.init_network()
