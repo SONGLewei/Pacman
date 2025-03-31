@@ -15,8 +15,11 @@ class VisualAIPlayerGame(Game):
     def __init__(self, headless=False):
         super().__init__(headless = headless)
         self.last_time = time.time()
-
-        with open('./visual/AI2.json','r',encoding='utf-8') as f:
+        # id = 31 individual in final_res_jsons
+        # path = './visual/AI2.json'
+        # id = 7
+        path = './visual/AI3.json'
+        with open(path,'r',encoding='utf-8') as f:
             data = json.load(f)
             weight_data = data["network_weights"]
 
