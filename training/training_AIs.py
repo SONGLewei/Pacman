@@ -77,8 +77,8 @@ class TrainingGame(Game):
             self.frames_stuck = 0
             self.last_position = current_position
 
-        if self.frames_stuck >= 360:
-            print(f"Player stuck for 360 frames,End the game")
+        if self.frames_stuck >= 1000:
+            print(f"Player stuck for 1000 frames,End the game")
             print("Score: ", self.score)
             self.endGame()
 

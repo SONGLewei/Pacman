@@ -17,9 +17,9 @@ if __name__ == "__main__":
     """
 
     game = TrainingGame()
-    population = game.productTheFirstGeneration(80)
+    population = game.productTheFirstGeneration(500)
 
-    num_generations = 10
+    num_generations = 20
     for gen in range(num_generations):
         print(f"\nGeneration {gen+1}:")
 
