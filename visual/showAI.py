@@ -15,10 +15,10 @@ class VisualAIPlayerGame(Game):
     def __init__(self, headless=False):
         super().__init__(headless = headless)
         self.last_time = time.time()
-        # id = 31 individual in final_res_jsons
-        # path = './visual/AI2.json'
-        # id = 7
-        path = './visual/AI3.json'
+
+        #path = './visual/AI2.json' # It understands how to getaway from the pink ghost, but dont know to go right and up.
+        #path = './visual/AI680.json'
+        path = './visual/AIstill.json'# Il est invincible
         with open(path,'r',encoding='utf-8') as f:
             data = json.load(f)
             weight_data = data["network_weights"]

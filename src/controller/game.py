@@ -94,7 +94,7 @@ class Game:
 
   def endGame(self):
     self.isRunning = False
-    pygame.quit()
+    #pygame.quit()
 
   def run(self):
     while self.isRunning:
