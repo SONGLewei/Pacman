@@ -1,5 +1,5 @@
 import math
-
+import concurrent.futures
 import numpy as np
 import json
 import random
@@ -11,6 +11,33 @@ from elements.dot import Dot
 from elements.bigDot import BigDot
 from training.pacmanAI import PacmanOfReseauNeuron
 from elements.wall import Wall
+from training.pacmanAIOneLayer import PacmanOfReseauNeuronOneLayer
+from training.pacmanAIThreeLayer import PacmanOfReseauNeuronThreeLayer
+
+def evaluate_ai(pacAI):
+    game = TrainingGame(ai_agent=pacAI)
+    game.resetGameState()
+
+    game.last_position = (game.player.x, game.player.y)
+    game.frames_stuck = 0
+
+    step = 0
+    while game.isRunning and step < game.max_steps:
+        step += 1
+        state = game.get_game_state()
+        action = pacAI.getDecision(state)
+        game.player.setDirection(action)
+        game.update()
+        game.dontMove360()
+
+    return pacAI, game.score, step
+
+def get_optimal_workers(reserved=2, min_limit=2, max_limit=16):
+    import os
+    total = os.cpu_count() or 4  # fallback
+    return max(min(total - reserved, max_limit), min_limit)
+
+
 """
     The father is Game, we will use this to train the AI, UI will not be active.
 """
@@ -26,7 +53,9 @@ class TrainingGame(Game):
         The first step of GA, product a population with size of 40 if not indicate the nb
         of the generation
         """
+        #pacAIS = [PacmanOfReseauNeuronOneLayer() for _ in range(population_size)]
         pacAIS = [PacmanOfReseauNeuron() for _ in range(population_size)]
+        #pacAIS = [PacmanOfReseauNeuronThreeLayer() for _ in range(population_size)]
         return pacAIS
 
     def runTheGeneration(self,pacAIS):
@@ -36,33 +65,23 @@ class TrainingGame(Game):
         sortie : score and themselves of these individus
         """
         results = []
-        for pacAI in pacAIS:
-            self.resetGameState()
-            self.ai_agent = pacAI
-            self.last_position = (self.player.x, self.player.y)
+        max_workers = get_optimal_workers()
+        with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+            for i, result in enumerate(executor.map(evaluate_ai, pacAIS)):
+                ai, score, steps = result
+                #print(f" AI #{i+1}: Score = {score}, Steps = {steps}")
+                results.append(result)
 
-            step = 0
-            while self.isRunning and step < self.max_steps:
-                step+=1
-                state = self.get_game_state()
-                action = self.ai_agent.getDecision(state)
-                self.player.setDirection(action)
-                super().update()
-                self.dontMove360()
+        results.sort(key=lambda x: x[1], reverse=True)
 
-                if not self.isRunning:
-                    break
-
-            results.append((pacAI,self.score,step))
-
-            if self.score >=9500 :
-                special_file = f"high_score_ai_{self.score}.txt"
-                self.saveHighScoreAI(pacAI, self.score, step, special_file)
+        for ai, score, step in results:
+            if score >= 9500:
+                special_file = f"high_score_ai_{score}.txt"
+                self.saveHighScoreAI(ai, score, step, special_file)
                 print(f"High score AI found! Saved to {special_file}")
-                #return results
-            
-        results.sort(key=lambda x: x[1],reverse=True)
+
         return results
+
     
     def dontMove360(self):
         """
@@ -299,6 +318,9 @@ class TrainingGame(Game):
         # Ate bigDot or not
         pacman_powered_up = 1 if self.player.isEmpowered else 0
         ghost_scared = 1 if any(g.state == "frightened" for g in self.movableEntities) else 0
+        ghost_dead = 1 if any(g.state == "dead" for g in self.movableEntities) else 0
+        ghost_chase = 1 if any(g.state == "chase" for g in self.movableEntities) else 0
+        ghost_spawning = 1 if any(g.state == "spawning" for g in self.movableEntities) else 0
 
         now = time.time()
         frame_duration = now - self.last_time
@@ -309,6 +331,41 @@ class TrainingGame(Game):
 
         normalized_fps = self.current_fps/100.0
 
+        #mini 888888888888888888
+        """
+        input_vector = [
+            pacman_x / self.WIDTH,
+            pacman_y / self.HEIGHT,
+            nearest_small_dot_dist / 100.0,
+            nearest_ghost_dist / self.WIDTH,
+            wall_up,
+            wall_down,
+            wall_left,
+            wall_right
+        ]
+        """
+
+        #milieu  1414141414141414
+        
+        input_vector = [
+            pacman_x / self.WIDTH,
+            pacman_y / self.HEIGHT,
+            nearest_small_dot_dist / 100.0,
+            len(small_dots) / 100.0,
+            len(big_dots) / 10,
+            nearest_ghost_dist / self.WIDTH,
+            second_ghost_dist / self.WIDTH,
+            ghost_scared,
+            ghost_dead,
+            ghost_chase,
+            wall_up,
+            wall_down,
+            wall_left,
+            wall_right
+        ]
+
+        """
+        # Le plus grand 252525252525
         input_vector = [
             pacman_x / self.WIDTH,
             pacman_y / self.HEIGHT,
@@ -321,6 +378,9 @@ class TrainingGame(Game):
             forth_ghost_dist / self.WIDTH,
             nearest_big_dot_dist / self.WIDTH,
             ghost_scared,
+            ghost_dead,
+            ghost_spawning,
+            ghost_chase,
             wall_up,
             wall_down,
             wall_left,
@@ -333,6 +393,7 @@ class TrainingGame(Game):
             direction_4_ghost,
             normalized_fps,
         ]
+        """
 
         return input_vector
     

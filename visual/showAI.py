@@ -17,8 +17,8 @@ class VisualAIPlayerGame(Game):
         self.last_time = time.time()
 
         #path = './visual/AI2.json' # It understands how to getaway from the pink ghost, but dont know to go right and up.
-        #path = './visual/AI680.json'
-        path = './visual/AIstill.json'# Il est invincible
+        path = './visual/3000.json'
+        #path = './visual/AIstill.json'# Il est invincible
         with open(path,'r',encoding='utf-8') as f:
             data = json.load(f)
             weight_data = data["network_weights"]
@@ -49,45 +49,54 @@ class VisualAIPlayerGame(Game):
                     self.endGame()
     
     def get_game_state(self):
-        pacman_x, pacman_y = self.player.x, self.player.y
+        """
+        The state of objects of this frame, these are the inputs of AI
+        """
+        # The position of AI
+        pacman_x, pacman_y = self.player.x,self.player.y
 
-        small_dots = [e for e in self.staticEntities if isinstance(e, Dot)]
-        big_dots = [e for e in self.staticEntities if isinstance(e, BigDot)]
+        # The dots
+        small_dots = [e for e in self.staticEntities if isinstance(e,Dot)]
+        big_dots = [e for e in self.staticEntities if isinstance(e,BigDot)]
 
-        nearest_small_dot_dist = min(
-            (math.hypot(dot.x - pacman_x, dot.y - pacman_y) for dot in small_dots),
-            default=0
-        )
-        nearest_big_dot_dist = min(
-            (math.hypot(dot.x - pacman_x, dot.y - pacman_y) for dot in big_dots),
-            default=0
-        )
+        nearest_small_dot_dist = min((math.hypot(dot.x - pacman_x, dot.y - pacman_y) for dot in small_dots), default=0)
+        nearest_big_dot_dist = min((math.hypot(dot.x - pacman_x, dot.y - pacman_y) for dot in big_dots), default=0)
 
-        ghosts_sorted = sorted(
-            self.movableEntities, 
-            key=lambda g: math.hypot(g.x - pacman_x, g.y - pacman_y)
-        )
+        # The nearest 2 ghosts
+        ghosts = sorted(self.movableEntities, key=lambda g: math.hypot(g.x - pacman_x, g.y - pacman_y))
+        nearest_ghost_dist = math.hypot(ghosts[0].x - pacman_x, ghosts[0].y - pacman_y)
+        second_ghost_dist = math.hypot(ghosts[1].x - pacman_x, ghosts[1].y - pacman_y)
+        third_ghost_dist = math.hypot(ghosts[2].x - pacman_x, ghosts[2].y - pacman_y)
+        forth_ghost_dist = math.hypot(ghosts[3].x - pacman_x, ghosts[3].y - pacman_y)
 
-        distances = [
-            math.hypot(ghosts_sorted[i].x - pacman_x, ghosts_sorted[i].y - pacman_y)
-            for i in range(4)
-        ]
-
-        angles = []
+        # What's the direction of the ghosts
         pacman_pos = (pacman_x, pacman_y)
-        for i in range(4):
-            ghost_pos = (ghosts_sorted[i].x, ghosts_sorted[i].y)
+        ghost_angles = []
+
+        for ghost in ghosts[:4]:
+            ghost_pos = (ghost.x, ghost.y)
             angle = self.angle_between_radians(pacman_pos, ghost_pos)
-            angles.append(angle)
+            ghost_angles.append(angle)
 
-        wall_up    = 1 if not self.player.movable[2] else 0
-        wall_down  = 1 if not self.player.movable[3] else 0
-        wall_left  = 1 if not self.player.movable[1] else 0
-        wall_right = 1 if not self.player.movable[0] else 0
+        # (0,2π)
+        direction_1_ghost = ghost_angles[0]
+        direction_2_ghost = ghost_angles[1]
+        direction_3_ghost = ghost_angles[2]
+        direction_4_ghost = ghost_angles[3]
 
-        pacman_powered = 1 if self.player.isEmpowered else 0
+        # Walls detection
+        wall_up = 0 if self.player.movable[2] else 1  # up
+        wall_down = 1 if not self.player.movable[3] else 0  # down
+        wall_left = 1 if not self.player.movable[1] else 0  # left
+        wall_right = 1 if not self.player.movable[0] else 0  # right
+
+        # Ate bigDot or not
+        pacman_powered_up = 1 if self.player.isEmpowered else 0
         ghost_scared = 1 if any(g.state == "frightened" for g in self.movableEntities) else 0
-        
+        ghost_dead = 1 if any(g.state == "dead" for g in self.movableEntities) else 0
+        ghost_chase = 1 if any(g.state == "chase" for g in self.movableEntities) else 0
+        ghost_spawning = 1 if any(g.state == "spawning" for g in self.movableEntities) else 0
+
         now = time.time()
         frame_duration = now - self.last_time
         self.last_time = now
@@ -96,31 +105,71 @@ class VisualAIPlayerGame(Game):
         self.current_fps = 1.0 / frame_duration
 
         normalized_fps = self.current_fps/100.0
+
+        #mini 888888888888888888
+        """
+        input_vector = [
+            pacman_x / self.WIDTH,
+            pacman_y / self.HEIGHT,
+            nearest_small_dot_dist / 100.0,
+            nearest_ghost_dist / self.WIDTH,
+            wall_up,
+            wall_down,
+            wall_left,
+            wall_right
+        ]
+        """
+
+        #milieu  1414141414141414
+        
         input_vector = [
             pacman_x / self.WIDTH,
             pacman_y / self.HEIGHT,
             nearest_small_dot_dist / 100.0,
             len(small_dots) / 100.0,
-            len(big_dots) / 10.0,
-            distances[0] / self.WIDTH,
-            distances[1] / self.WIDTH,
-            distances[2] / self.WIDTH,
-            distances[3] / self.WIDTH,
+            len(big_dots) / 10,
+            nearest_ghost_dist / self.WIDTH,
+            second_ghost_dist / self.WIDTH,
+            ghost_scared,
+            ghost_dead,
+            ghost_chase,
+            wall_up,
+            wall_down,
+            wall_left,
+            wall_right
+        ]
+        
+
+        # Le plus grand 252525252525
+        """
+        input_vector = [
+            pacman_x / self.WIDTH,
+            pacman_y / self.HEIGHT,
+            nearest_small_dot_dist / 100.0,
+            len(small_dots) / 100.0,
+            len(big_dots) / 10,
+            nearest_ghost_dist / self.WIDTH,
+            second_ghost_dist / self.WIDTH,
+            third_ghost_dist / self.WIDTH,
+            forth_ghost_dist / self.WIDTH,
             nearest_big_dot_dist / self.WIDTH,
             ghost_scared,
+            ghost_dead,
+            ghost_spawning,
+            ghost_chase,
             wall_up,
             wall_down,
             wall_left,
             wall_right,
-            pacman_powered,
+            pacman_powered_up,
             self.score / 1000,
-            angles[0],
-            angles[1],
-            angles[2],
-            angles[3],
+            direction_1_ghost,
+            direction_2_ghost,
+            direction_3_ghost,
+            direction_4_ghost,
             normalized_fps,
         ]
-
+        """
         return input_vector
 
     @staticmethod

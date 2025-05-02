@@ -57,6 +57,12 @@
 
     这样的效果很好，我只用50种群数量和5代，我的训练结果和展示结果就变的差不多了，也就是说AI 适应了这个输入！
 
+    训练可以尝试同时训练，提升cpu使用率
+
+    设置为20代（简化一下）然后对于单层神经网络，分别采用不同的输入维度对于双层神经网络，
+    分别采用不同输入维度 这样同时运行6台电脑就可以完成应该
+    为了简化这个实验，1隐藏层，少，中，多输入，2隐藏层，少，中，多输入 6台电脑结束
+
 Utilisation d'individus du réseau neuronal + algorithme génétique pour réaliser le processus de lecture de Pacman AI
  1. Créez entièrement le jeu, en utilisant des grilles pour réguler strictement le temps de rotation des joueurs et des fantômes
 

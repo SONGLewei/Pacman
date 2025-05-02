@@ -1,0 +1,17 @@
+[
+    {
+        "generation": 1,
+        "best": 120,
+        "avg": 21.666666666666668
+    },
+    {
+        "generation": 2,
+        "best": 190,
+        "avg": 135.0
+    },
+    {
+        "generation": 3,
+        "best": 190,
+        "avg": 175.0
+    }
+]
